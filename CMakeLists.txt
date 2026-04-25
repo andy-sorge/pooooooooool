@@ -5,10 +5,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(SFML 3 REQUIRED COMPONENTS Graphics)
+
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 add_executable(${PROJECT_NAME} main.cpp ${SOURCES} ${HEADERS})
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics)
 
 file(GLOB RESOURCES CONFIGURE_DEPENDS resource/*.txt resource/*.csv)
 foreach(RES ${RESOURCES})
