@@ -22,6 +22,7 @@ private:
     Rect physicalSize;
 
     std::vector<Ball> balls;
+    std::vector<Vector> initial_ball_velocities; // for physics ✨
 
     // sf::RenderWindow window;
 
