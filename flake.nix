@@ -11,6 +11,8 @@
         clang-tools
         cmake
         gnumake
+        
+        sfml
       ];
     };
   };
