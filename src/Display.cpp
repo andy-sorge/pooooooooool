@@ -27,6 +27,7 @@ void Display::update() {
 
     sf::Clock clock;
     sf::Time dt = sf::Time::Zero;
+    int holding_ball = -1;
     while (window.isOpen())
     {
 
@@ -47,6 +48,20 @@ void Display::update() {
                 if (key->code == sf::Keyboard::Key::LShift) {
                     balls.clear();
                     create_arranged_balls(balls);
+                }
+            }
+            if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
+               if (button->button == sf::Mouse::Button::Left) {
+                   sf::Vector2i mouse = sf::Mouse::getPosition()/2;
+                   holding_ball = balls.size();
+                   balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0);
+               }
+            }
+            if (auto* button = event->getIf<sf::Event::MouseButtonReleased>()) {
+                if (button->button == sf::Mouse::Button::Left) {
+                    sf::Vector2i mouse = sf::Mouse::getPosition()/2;
+                    Vector mouse_pos = Vector(mouse.x, mouse.y);
+                    balls[holding_ball].vel += (balls[holding_ball].pos - mouse_pos) * 10;
                 }
             }
         }
