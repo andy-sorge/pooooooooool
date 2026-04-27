@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include "SFML/Graphics.hpp"
 
 typedef double unit_t;
