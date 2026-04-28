@@ -3,7 +3,9 @@
 
 Display::Display():
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
-logicalSize_({ 1600, 1000 })
+logicalSize_({ 1600, 900 }),
+tableTop_(getTableTop(LEFT)),
+tableBorder_(getTableBorder(LEFT))
 {
     this->physicalSize_ = this->window_.getSize();
     
@@ -29,7 +31,6 @@ void Display::setupDisplay() {
 }
 
 void Display::update() {
-    // sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "My window", sf::State::Fullscreen);
 
     auto window_size = this->window_.getSize();
     std::cout << window_size.x << " " << this->window_.getSize().y << std::endl;
@@ -76,6 +77,9 @@ void Display::update() {
         }
 
         this->window_.clear(sf::Color(0x08, 0x33, 0x00));
+        
+        this->window_.draw(this->tableTop_);
+        this->window_.draw(this->tableBorder_);
 
         if (this->window_.hasFocus()) { // physics
             dt += clock.reset();

@@ -5,7 +5,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include "Textures.hpp"
 
-#define BALL_RADIUS 40
+#define BALL_RADIUS 50
 
 enum class BallType {
     Stripe,

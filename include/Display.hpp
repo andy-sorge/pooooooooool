@@ -1,8 +1,9 @@
 #pragma once
 
+#include <SFML/Graphics/Sprite.hpp>
 #include <vector>
 #include <iostream>
-
+#include "../include/Textures.hpp"
 #include "SFML/Graphics.hpp"
 #include "Ball.hpp"
 
@@ -22,6 +23,9 @@ private:
     const sf::Vector2u logicalSize_;
     sf::Vector2u physicalSize_;
     sf::Vector2u renderedSize_;
+    
+    sf::Sprite tableTop_;
+    sf::Sprite tableBorder_;
     
     float scaleFactor_;
     

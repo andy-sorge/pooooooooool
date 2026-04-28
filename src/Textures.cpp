@@ -1,4 +1,5 @@
 #include "../include/Textures.hpp"
+#include <SFML/Graphics/Texture.hpp>
 
 std::array<sf::Texture, 16> ballTextures = {
     sf::Texture("graphics/balls/0.png"),
@@ -19,6 +20,26 @@ std::array<sf::Texture, 16> ballTextures = {
     sf::Texture("graphics/balls/15.png")
 };
 
+std::array<sf::Texture, 3> tableTops = {
+    sf::Texture("graphics/table/under.png", false, sf::IntRect({0, 0}, {1920, 1080})),
+    sf::Texture("graphics/table/under.png", false, sf::IntRect({1920, 0}, {1920, 1080})),
+    sf::Texture("graphics/table/under.png", false, sf::IntRect({3840, 0}, {1920, 1080})),
+};
+
+std::array<sf::Texture, 3> tableBorders = {
+    sf::Texture("graphics/table/over.png", false, sf::IntRect({0, 0}, {1920, 1080})),
+    sf::Texture("graphics/table/over.png", false, sf::IntRect({1920, 0}, {1920, 1080})),
+    sf::Texture("graphics/table/over.png", false, sf::IntRect({3840, 0}, {1920, 1080})),
+};
+
 sf::Texture& resolveTexture(int ballNumber) {
     return ballTextures.at(ballNumber);
+}
+
+sf::Texture& getTableTop(TableSegment seg) {
+    return tableTops[seg];
+}
+
+sf::Texture& getTableBorder(TableSegment seg) {
+    return tableBorders[seg];
 }
