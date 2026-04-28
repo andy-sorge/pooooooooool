@@ -1,40 +1,32 @@
 #include "../include/Ball.hpp"
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <iostream>
+#include <memory>
+#include <string>
 
-Ball::Ball(Vector position, Vector velocity, int8_t ball_number) {
+Ball::Ball(Vector position, Vector velocity, int8_t ball_number) :
+    sf::Sprite(resolveTexture(ball_number))
+{
+    number = ball_number;  // assign FIRST
+
+    // std::string fname("graphics/balls/");
+    // fname += std::to_string(number);  // now safe
+    // fname += ".png";
+
+    // this->tex_.loadFromFile(fname);
+    // this->setTexture(this->tex_);  // keeps tex_ alive (it's a member)
+
     pos = position;
     vel = velocity;
     radius = BALL_RADIUS;
     mass = 1;
-    number = ball_number;
+
     if      (number == 0)                 { type = BallType::Cue;    }
-    else if (number >= 0 && number <= 7)  { type = BallType::Solid;  }
+    else if (number >= 1 && number <= 7)  { type = BallType::Solid;  }  // also fixed: was >= 0
     else if (number == 8)                 { type = BallType::Eight;  }
     else if (number >= 9 && number <= 15) { type = BallType::Stripe; }
-    // SF
-    this->setRadius(radius);
-    sf::Color color = sf::Color::White;
-    switch (number) {
-        case 0: color = sf::Color::White; break;
-        case 1: color = sf::Color::Yellow; break;
-        case 2: color = sf::Color::Blue; break;
-        case 3: color = sf::Color::Red; break;
-        case 4: color = sf::Color::Magenta; break;
-        case 5: color = sf::Color(0xff,0xa5,0x00); break;
-        case 6: color = sf::Color::Green; break;
-        case 7: color = sf::Color(0x80,0x00,0x00); break;
-        case 8: color = sf::Color::Black; break;
-        case 9: color = sf::Color::Yellow; break;
-        case 10: color = sf::Color::Blue; break;
-        case 11: color = sf::Color::Red; break;
-        case 12: color = sf::Color::Magenta; break;
-        case 13: color = sf::Color(0xff,0xa5,0x00); break;
-        case 14: color = sf::Color::Green; break;
-        case 15: color = sf::Color(0x80,0x00,0x00); break;
-        default:
-            throw std::logic_error("Unimplemented Ball");
-    }
-    this->setFillColor(color); // temp
+
     this->setCenter(pos.sf());
 }
 
@@ -50,6 +42,9 @@ void Ball::hit(Ball& rhs) {
 
     // Formula: |rhs.vel| = (2*|this->vel| * (this->vel.norm() dot (rhs.pos-this->pos))) / (m2/m1 + 1)
     if (this->vel.magnitude() == 0.0 && rhs.vel.magnitude() == 0.0) return;
+    
+    // goofy bodge fix
+    this->pos -= (this->pos - rhs.pos).normalized() * ((rhs.pos - this->pos).magnitude() - this->radius - rhs.radius);
 
     Vector V0 = this->vel - rhs.vel; // transforming rhs to be stationary
     Vector dpos = rhs.pos - this->pos; // change in position
@@ -89,7 +84,7 @@ void Ball::tick_physics(double dt) { // dt in seconds
 Ball::~Ball() = default;
 
 void Ball::setCenter(sf::Vector2f pos) {
-    this->setPosition({pos.x - this->getRadius(), pos.y - this->getRadius()});
+    this->setPosition({pos.x - this->getLocalBounds().size.x / 2, pos.y - this->getLocalBounds().size.y / 2});
 }
 
 void create_arranged_balls(std::vector<Ball>& balls) {

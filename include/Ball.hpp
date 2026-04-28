@@ -2,6 +2,8 @@
 
 #include "SFML/Graphics.hpp"
 #include "Physics.hpp"
+#include <SFML/Graphics/Texture.hpp>
+#include "Textures.hpp"
 
 #define BALL_RADIUS 40
 
@@ -12,7 +14,18 @@ enum class BallType {
     Cue
 };
 
-class Ball : public sf::CircleShape {
+struct BallTextureHolder {
+    sf::Texture tex_;
+    BallTextureHolder(int8_t number) {
+        std::string fname = "graphics/balls/";
+        fname += std::to_string(number);
+        fname += ".png";
+        if (!tex_.loadFromFile(fname))
+            throw std::runtime_error("Failed to load ball texture: " + fname);
+    }
+};
+
+class Ball : public sf::Sprite {
 public:
     // Ball number 0 is the cue ball
     Ball(Vector position, Vector velocity, int8_t number);
@@ -30,6 +43,7 @@ public:
     void tick_physics(double dt);
 
 private:
+    sf::Texture tex_;
     void setCenter(sf::Vector2f pos);
 };
 

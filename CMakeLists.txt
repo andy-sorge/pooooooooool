@@ -13,7 +13,7 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.hpp include/*.h)
 add_executable(${PROJECT_NAME} main.cpp ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics)
 
-file(GLOB RESOURCES CONFIGURE_DEPENDS resource/*.txt resource/*.csv)
+file(GLOB RESOURCES CONFIGURE_DEPENDS resource/*.txt resource/*.csv resource/*.png)
 foreach(RES ${RESOURCES})
     configure_file(${RES} ${CMAKE_BINARY_DIR} COPYONLY)
 endforeach()
