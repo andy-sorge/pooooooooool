@@ -14,17 +14,6 @@ enum class BallType {
     Cue
 };
 
-struct BallTextureHolder {
-    sf::Texture tex_;
-    BallTextureHolder(int8_t number) {
-        std::string fname = "graphics/balls/";
-        fname += std::to_string(number);
-        fname += ".png";
-        if (!tex_.loadFromFile(fname))
-            throw std::runtime_error("Failed to load ball texture: " + fname);
-    }
-};
-
 class Ball : public sf::Sprite {
 public:
     // Ball number 0 is the cue ball

@@ -12,14 +12,22 @@ typedef struct rect {
     int y;
 } Rect;
 
+enum Role {
+    HOST,
+    CLIENT
+};
+
 class Display {
 public:
-    Display();
+    Display(TableSegment seg, Role role, unsigned int totalDisplays);
     ~Display();
 
     void update();
     
 private:
+    Role role_;
+    TableSegment seg_;
+
     const sf::Vector2u logicalSize_;
     sf::Vector2u physicalSize_;
     sf::Vector2u renderedSize_;
@@ -39,5 +47,6 @@ private:
     void setupDisplay();
     
     void calculateTransform();
+    void calculateLogical(int totalDisplays);
 
 };

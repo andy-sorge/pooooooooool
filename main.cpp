@@ -11,6 +11,6 @@ T dot_product(T x1, T y1, T x2, T y2) {
 
 
 int main() {
-    Display d;
+    Display d(LEFT, HOST, 1);
     d.update();
 }

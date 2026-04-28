@@ -1,12 +1,17 @@
 #include "../include/Physics.hpp"
+#include <SFML/System/Vector2.hpp>
 #include "../include/Display.hpp"
 
-Display::Display():
+Display::Display(TableSegment seg, Role role, unsigned int totalDisplays):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
-logicalSize_({ 1600, 900 }),
-tableTop_(getTableTop(LEFT)),
-tableBorder_(getTableBorder(LEFT))
+logicalSize_({ 1703 * 2 + (1920 * totalDisplays - 2), 670 }),
+tableTop_(getTableTop(seg)),
+tableBorder_(getTableBorder(seg))
 {
+    this->role_ = role;
+    this->seg_ = seg;
+    // table border is 205 at top and bottom
+    // table border is 217 at left and right
     this->physicalSize_ = this->window_.getSize();
     
     this->calculateTransform();
@@ -32,7 +37,8 @@ void Display::setupDisplay() {
 
 void Display::update() {
 
-    auto window_size = this->window_.getSize();
+    auto window_size = sf::Vector2u({ 1703, 670 });
+    auto table_offset = sf::Vector2u({ 217, 205 });
     std::cout << window_size.x << " " << this->window_.getSize().y << std::endl;
 
     sf::Clock clock;
@@ -97,16 +103,16 @@ void Display::update() {
                     Ball& ball1 = balls[i];
                     // flip if it hits the walls (currently just edge of screen)
                     // needs to correctly move the ball backwards in time out of the wall instead of just setting position lowk
-                    if (ball1.pos.y < 0 + ball1.radius ) {
-                        ball1.pos.y = 0 + ball1.radius;
+                    if (ball1.pos.y < table_offset.y + ball1.radius ) {
+                        ball1.pos.y = table_offset.y + ball1.radius;
                         ball1.vel.y = -ball1.vel.y - ball1.friction().magnitude();
                     }
                     if (ball1.pos.y > window_size.y - ball1.radius) {
                         ball1.pos.y = window_size.y - ball1.radius;
                         ball1.vel.y = -ball1.vel.y + ball1.friction().magnitude();
                     }
-                    if (ball1.pos.x < 0 + ball1.radius) {
-                        ball1.pos.x = 0 + ball1.radius;
+                    if (ball1.pos.x < table_offset.x + ball1.radius) {
+                        ball1.pos.x = table_offset.x + ball1.radius;
                         ball1.vel.x = -ball1.vel.x - ball1.friction().magnitude();
                     }
                     if (ball1.pos.x > window_size.x - ball1.radius) {
