@@ -75,9 +75,9 @@ void Display::recalculateLayout() {
     if (displays == 1) {
         logicalWidth = 1703;
     } else if (displays == 2) {
-        logicalWidth = 1703 * 2 - 2;
+        logicalWidth = 1703 * 2;
     } else {
-        logicalWidth = 1703 * 2 + 1920 * (displays - 2) - 2;
+        logicalWidth = 1703 * 2 + 1920 * (displays - 2);
     }
 
     this->logicalSize_ = sf::Vector2u({ logicalWidth, 670 });
@@ -95,7 +95,7 @@ void Display::recalculateLayout() {
     }
 
     float baseOffsetX = (index == 0) ? 217.0f : 0.0f;
-    this->tableOffset_ = sf::Vector2f({ baseOffsetX + static_cast<float>(displayOffsetX), 205 });
+    this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }
 
 void Display::drawBall(Ball& b) {
