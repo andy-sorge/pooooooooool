@@ -3,11 +3,18 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <vector>
+#include <atomic>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+#include <asio.hpp>
 #include "../include/Textures.hpp"
 #include "SFML/Graphics.hpp"
 #include "Ball.hpp"
+#include "PoolNetwork.hpp"
 
 typedef struct rect {
     int x;
@@ -21,7 +28,7 @@ enum Role {
 
 class Display {
 public:
-    Display(TableSegment seg, Role role, unsigned int totalDisplays);
+    Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress = "127.0.0.1");
     ~Display();
 
     void update();
@@ -56,4 +63,22 @@ private:
     void calculateTransform();
     void calculateLogical(int totalDisplays);
 
+    void setupNetworking(const std::string& hostAddress);
+    void broadcastState();
+    void applyNetworkState(const std::vector<PoolBallState>& state);
+    void recalculateLayout();
+    std::vector<Vector> pocketCenters() const;
+    bool isPocketed(const Ball& ball) const;
+
+    std::unique_ptr<asio::io_context> io_;
+    std::unique_ptr<PoolServer> server_;
+    std::unique_ptr<PoolClient> client_;
+    std::unique_ptr<asio::steady_timer> joinTimer_;
+    std::thread networkThread_;
+    std::mutex ballsMutex_;
+    std::atomic<unsigned int> totalDisplays_{1};
+    unsigned int displayIndex_{0};
+    std::atomic<bool> logicalDirty_{false};
+    std::atomic<bool> hasNetworkState_{false};
+    std::atomic<bool> shouldQuit_{false};
 };
