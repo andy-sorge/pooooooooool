@@ -27,7 +27,7 @@ public:
     int8_t number;
     BallType type;
 
-    void hit(Ball& rhs);
+    void hit(Ball& rhs, double dt);
     [[nodiscard]] Vector friction() const;
     void tick_physics(double dt);
     // void setCenter(sf::Vector2f pos);

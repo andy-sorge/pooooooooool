@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
 #include "../include/Display.hpp"
+#include "../include/Audio.hpp"
 
 Display::Display(TableSegment seg, Role role, unsigned int totalDisplays):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
@@ -87,6 +88,18 @@ void Display::update() {
                 this->window_.close();
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                if (key->code == sf::Keyboard::Key::Num1) {
+                    tableTop_.setTexture(getTableTop(LEFT));
+                    tableBorder_.setTexture(getTableBorder(LEFT));
+                }
+                if (key->code == sf::Keyboard::Key::Num2) {
+                    tableTop_.setTexture(getTableTop(CENTER));
+                    tableBorder_.setTexture(getTableBorder(CENTER));
+                }
+                if (key->code == sf::Keyboard::Key::Num3) {
+                    tableTop_.setTexture(getTableTop(RIGHT));
+                    tableBorder_.setTexture(getTableBorder(RIGHT));
+                }
                 if (key->code == sf::Keyboard::Key::Escape) {
                     this->window_.close();
                 }
@@ -157,8 +170,7 @@ void Display::update() {
                     for (int j = i+1; j < balls.size(); ++j) {
                         Ball& ball2 = balls[j];
                         if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) {
-                            // TODO: play hit sound effect
-                            ball1.hit(ball2);
+                            ball1.hit(ball2, between_frames.asSeconds());
                         }
                     }
                 }
@@ -167,6 +179,7 @@ void Display::update() {
                 this->drawBall(ball);
             }
         }
+        else clock.stop();
 
         this->window_.display();
     }
