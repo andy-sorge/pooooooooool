@@ -46,8 +46,9 @@ void Ball::hit(Ball& rhs, double dt) {
     // Formula: |rhs.vel| = (2*|this->vel| * (this->vel.norm() dot (rhs.pos-this->pos))) / (m2/m1 + 1)
     if (this->vel.magnitude() == 0.0 && rhs.vel.magnitude() == 0.0) return;
 
-    this->vel += friction() * dt; // give me back the original velocity
-    rhs.vel += friction() * dt; // give me back the original velocity
+    // if (this->vel.magnitude() > 0) this->vel += this->friction() * dt; // give me back the original velocity
+    // if (rhs.vel.magnitude() > 0) rhs.vel += rhs.friction() * dt; // give me back the original velocity
+
     // goofy bodge fix
     // this->pos -= (this->pos - rhs.pos).normalized() * ((rhs.pos - this->pos).magnitude() - this->radius - rhs.radius);
 
