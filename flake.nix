@@ -13,6 +13,7 @@
         gnumake
         
         sfml
+        asio
       ];
     };
   };

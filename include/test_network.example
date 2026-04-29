@@ -1,8 +1,3 @@
-#include <iostream>
-#include <string>
-#include <cstdint>
-#include <vector>
-
 #include "message.hpp"
 #include "server.hpp"
 #include "client.hpp"
@@ -30,7 +25,7 @@ struct TestProtocol {
 	static void encodeHeader(std::array<uint8_t, 5>& header, MessageType type, uint32_t bodyLength) {
 		header[0] = static_cast<uint8_t>(type);
 		header[1] = bodyLength >> 24;
-		header[2] = bodyLength >> 16;
+		header[2] = body_length >> 16;
 		header[3] = bodyLength >> 8;
 		header[4] = bodyLength;
 	}
@@ -39,11 +34,15 @@ struct TestProtocol {
 // test message, implementing basics
 struct TestMessage : Message<TestProtocol> {
 	static TestMessage text(const std::string& string) {
-		TestMessage msg;
-		msg.type = TestProtocol::MessageType::Test;
+		Message msg;
+		msg.type = TestProtocol::MessageType::Text;
 		msg.body = std::vector<uint8_t>(string.begin(), string.end());
 		msg.bodyLength = static_cast<uint32_t>(msg.body.size());
 		return msg;
+	}
+
+	std::string bodyAsString() const {
+		return std::string(body.begin(), body.end());
 	}
 };
 
@@ -54,29 +53,25 @@ public:
 protected:
 	void onMessage(const Message<TestProtocol>& msg) override {
 		std::cout << "server got message";
-		Connection::room().deliver(msg);
+		_room.deliver(msg);
 	}
 };
 
 class TestClient : public Client<TestProtocol> {
 public:
-	using Client<TestProtocol>::Client;
+	using Client::Client;
 protected:
 	void onMessage(const Message<TestProtocol>& msg) override {
-		std::cout << "yes, hello i am a client, i got a message... " << TestClient::bodyAsString(msg) << "\n";
-	}
-
-	static std::string bodyAsString(const Message<TestProtocol>& msg) {
-		return std::string(msg.body.begin(), msg.body.end());
+		std::cout << "yes, hello i am a client, i got a message... " << msg.bodyAsString() << "\n";
 	}
 };
 
 int main() {
 	asio::io_context io;
 
-	Server<TestConnection, TestProtocol> server(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), PORT));
+	Server<TestConnection> server(io, tcp::endpoint(tcp::v4(), PORT));
 
-	asio::ip::tcp::resolver resolver(io);
+	tcp::resolver resolver(io);
 	auto endpoints = resolver.resolve(ADDRESS, PORT_STRING);
 
 	TestClient a(io, endpoints), b(io, endpoints);
