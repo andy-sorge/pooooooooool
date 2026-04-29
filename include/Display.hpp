@@ -28,7 +28,7 @@ enum Role {
 
 class Display {
 public:
-    Display(TableSegment seg, Role role, unsigned int totalDisplays, std::string hostAddress = "127.0.0.1");
+    Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress = "127.0.0.1");
     ~Display();
 
     void update();
@@ -43,7 +43,6 @@ private:
     sf::Vector2u renderedOffset_;
     sf::Vector2f tableOffset_;
     sf::Vector2u logicalSize_;
-    int displayOffset_;
     float scale_;
     
     void calculateRenderedSize();
@@ -67,11 +66,17 @@ private:
     void setupNetworking(const std::string& hostAddress);
     void broadcastState();
     void applyNetworkState(const std::vector<PoolBallState>& state);
+    void recalculateLayout();
 
     std::unique_ptr<asio::io_context> io_;
     std::unique_ptr<PoolServer> server_;
     std::unique_ptr<PoolClient> client_;
+    std::unique_ptr<asio::steady_timer> joinTimer_;
     std::thread networkThread_;
     std::mutex ballsMutex_;
+    std::atomic<unsigned int> totalDisplays_{1};
+    unsigned int displayIndex_{0};
+    std::atomic<bool> logicalDirty_{false};
     std::atomic<bool> hasNetworkState_{false};
+    std::atomic<bool> shouldQuit_{false};
 };

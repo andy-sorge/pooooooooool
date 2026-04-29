@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     Role role = HOST;
     TableSegment seg = LEFT;
     unsigned int totalDisplays = 1;
+    unsigned int displayIndex = 0;
     std::string hostAddress = "127.0.0.1";
 
     for (int i = 1; i < argc; ++i) {
@@ -31,9 +32,19 @@ int main(int argc, char** argv) {
             else if (value == "right") seg = RIGHT;
         } else if (arg == "--displays" && i + 1 < argc) {
             totalDisplays = static_cast<unsigned int>(std::stoul(argv[++i]));
+        } else if (arg == "--index" && i + 1 < argc) {
+            displayIndex = static_cast<unsigned int>(std::stoul(argv[++i]));
         }
     }
 
-    Display d(seg, role, totalDisplays, hostAddress);
+    if (totalDisplays < 1) totalDisplays = 1;
+    if (displayIndex >= totalDisplays) displayIndex = totalDisplays - 1;
+
+    if (displayIndex == 0) seg = LEFT;
+    else if (displayIndex == totalDisplays - 1) seg = RIGHT;
+    else seg = CENTER;
+
+    unsigned int displayCountForRole = (role == HOST) ? 1 : totalDisplays;
+    Display d(seg, role, displayCountForRole, displayIndex, hostAddress);
     d.update();
 }

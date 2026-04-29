@@ -5,6 +5,7 @@
 #include <cstring>
 #include <functional>
 #include <span>
+#include <utility>
 #include <vector>
 #include <asio.hpp>
 
@@ -127,16 +128,29 @@ protected:
 
 class PoolServer : public Server<PoolConnection, PoolProtocol> {
 public:
-    PoolServer(asio::io_context& io, const asio::ip::tcp::endpoint& endpoint)
-        : Server<PoolConnection, PoolProtocol>(io, endpoint), io_(io) {}
+    using OnConnect = std::function<void()>;
+
+    PoolServer(asio::io_context& io, const asio::ip::tcp::endpoint& endpoint, OnConnect onConnect = {})
+        : Server<PoolConnection, PoolProtocol>(io, endpoint), io_(io), onConnect_(std::move(onConnect)) {}
 
     void broadcast(const Message<PoolProtocol>& msg) {
         asio::post(io_, [this, msg]() {
             this->_room.deliver(msg);
         });
     }
+protected:
+    void doAccept() override {
+        this->_acceptor.async_accept([this](std::error_code errorCode, asio::ip::tcp::socket socket) {
+            if (!errorCode) {
+                if (onConnect_) onConnect_();
+                std::make_shared<PoolConnection>(std::move(socket), this->_room)->start();
+            }
+            doAccept();
+        });
+    }
 private:
     asio::io_context& io_;
+    OnConnect onConnect_;
 };
 
 class PoolClient : public Client<PoolProtocol> {

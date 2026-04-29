@@ -2,37 +2,28 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <algorithm>
+#include <chrono>
 #include "../include/Display.hpp"
 #include "../include/Audio.hpp"
 
-Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, std::string hostAddress):
+Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
-logicalSize_({ 1703 * 2 + (1920 * totalDisplays - 2), 670 }),
+logicalSize_({ 1703, 670 }),
 tableTop_(getTableTop(seg)),
 tableBorder_(getTableBorder(seg))
 {
     this->role_ = role;
     this->seg_ = seg;
+    this->totalDisplays_.store(std::max(1u, totalDisplays));
+    this->displayIndex_ = displayIndex;
     // table border is 205 at top and bottom
     // table border is 217 at left and right
     this->physicalSize_ = this->window_.getSize();
     this->calculateRenderedSize();
     this->calculateRenderedOffset();
     this->calculateScale();
-    if (this->seg_ == LEFT) {
-           this->tableOffset_ = sf::Vector2f({ 217, 205 });
-    } else {
-        this->tableOffset_ = sf::Vector2f({ 0, 205 });
-    }
-    if (this->seg_ == LEFT) {
-        this->displayOffset_ = 0;
-    } else if (this->seg_ == CENTER) {
-        this->displayOffset_ = 1920;
-    } else if (this->seg_ == RIGHT) {
-        this->displayOffset_ = 1920;
-    }
-    // this->tableOffset_ = sf::Vector2f({ 217, 205 }); // set to { 0, 205 } for middle or right
-    // this->logicalSize_ = sf::Vector2u({ 1703, 670 }); // comment this out for multi display, set to { 1920, 670 } to test middle
+    this->recalculateLayout();
 
     this->tableBorder_.setPosition({
         (float)this->renderedOffset_.x,
@@ -76,9 +67,40 @@ void Display::calculateScale() {
     this->scale_ = (float)this->renderedSize_.x / 1920;
 }
 
+void Display::recalculateLayout() {
+    unsigned int displays = this->totalDisplays_.load();
+    if (displays < 1) displays = 1;
+
+    unsigned int logicalWidth = 1703;
+    if (displays == 1) {
+        logicalWidth = 1703;
+    } else if (displays == 2) {
+        logicalWidth = 1703 * 2 - 2;
+    } else {
+        logicalWidth = 1703 * 2 + 1920 * (displays - 2) - 2;
+    }
+
+    this->logicalSize_ = sf::Vector2u({ logicalWidth, 670 });
+
+    unsigned int index = this->displayIndex_;
+    if (index >= displays) index = displays - 1;
+
+    unsigned int displayOffsetX = 0;
+    if (index == 0) {
+        displayOffsetX = 0;
+    } else if (index == displays - 1) {
+        displayOffsetX = logicalWidth - 1703;
+    } else {
+        displayOffsetX = 1703 + 1920 * (index - 1);
+    }
+
+    float baseOffsetX = (index == 0) ? 217.0f : 0.0f;
+    this->tableOffset_ = sf::Vector2f({ baseOffsetX + static_cast<float>(displayOffsetX), 205 });
+}
+
 void Display::drawBall(Ball& b) {
     b.setPosition({
-        (((float)b.pos.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x) - this->displayOffset_,
+        ((float)b.pos.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
         ((float)b.pos.y + this->tableOffset_.y) * this->scale_  + this->renderedOffset_.y,
     });
     this->window_.draw(b);
@@ -94,12 +116,23 @@ void Display::setupNetworking(const std::string& hostAddress) {
 
     if (role_ == HOST) {
         asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), kPoolPort);
-        server_ = std::make_unique<PoolServer>(*io_, endpoint);
+        server_ = std::make_unique<PoolServer>(*io_, endpoint, [this]() {
+            this->totalDisplays_.fetch_add(1);
+            this->logicalDirty_.store(true);
+        });
     } else {
         asio::ip::tcp::resolver resolver(*io_);
         auto endpoints = resolver.resolve(hostAddress, kPoolPortString);
         client_ = std::make_unique<PoolClient>(*io_, endpoints, [this](const std::vector<PoolBallState>& state) {
             applyNetworkState(state);
+        });
+
+        joinTimer_ = std::make_unique<asio::steady_timer>(*io_);
+        joinTimer_->expires_after(std::chrono::seconds(5));
+        joinTimer_->async_wait([this](const std::error_code& errorCode) {
+            if (!errorCode && role_ == CLIENT && !hasNetworkState_) {
+                shouldQuit_ = true;
+            }
         });
     }
 
@@ -151,6 +184,13 @@ void Display::update() {
     int holding_ball = -1;
     while (this->window_.isOpen())
     {
+        if (role_ == CLIENT && shouldQuit_) {
+            this->window_.close();
+        }
+        if (role_ == HOST && logicalDirty_.exchange(false)) {
+            recalculateLayout();
+        }
+
         while (const std::optional event = this->window_.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
