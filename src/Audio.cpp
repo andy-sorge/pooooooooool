@@ -34,7 +34,7 @@ std::array<std::optional<sf::Sound>, 40> sounds = {};
 
 std::deque<sf::Sound> sound_queue;
 
-void playBallHit(float volume) {
+void playBallHitBall(float volume) {
     // float pitch_variation = sf::Randomizer::Random(0.9f, 1.1f);
     // std::cout <<
     const auto& sound_used = random_sound(ball_hit_sounds);
@@ -53,4 +53,16 @@ void playBallHit(float volume) {
     // // sound_up->setPitch(1.8);
     //
     // sound_index += 1;
+}
+
+void playCueHitBall(float volume) {
+    // TODO
+}
+
+void playBallHitCushions(float volume) {
+    // TODO
+}
+
+void playBallSunk(int num_balls_already_sunk) {
+    // TODO
 }

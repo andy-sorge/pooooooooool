@@ -71,7 +71,8 @@ void Ball::hit(Ball& rhs, double dt) {
         root2 = (-b - std::sqrt(discriminant)) / (2 * a);
     }
     else {
-        std::cout << "wtf (inside Ball::hit)" << std::endl;
+        // std::cout << "wtf (inside Ball::hit)" << std::endl;
+        // I need to do recursive parsing :(
     }
 
     unit_t time_of_impact = std::min(root1, root2);
