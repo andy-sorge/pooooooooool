@@ -17,7 +17,7 @@ enum class BallType {
 class Ball : public sf::Sprite {
 public:
     // Ball number 0 is the cue ball
-    Ball(Vector position, Vector velocity, int8_t number);
+    Ball(Vector position, Vector velocity, int8_t number, float scale);
     ~Ball() override;
 
     Vector pos;
@@ -36,4 +36,4 @@ private:
     sf::Texture tex_;
 };
 
-void create_arranged_balls(std::vector<Ball>& balls);
+void create_arranged_balls(std::vector<Ball>& balls, float scale);

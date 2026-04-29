@@ -37,7 +37,7 @@ tableBorder_(getTableBorder(seg))
     // for (int i = 0; i <= 8; ++i) {
     //     balls.emplace_back(Vector{100.5*i,200.0}, Vector{500.0*i,1000.0}, i);
     // }
-    create_arranged_balls(balls);
+    create_arranged_balls(balls, this->scale_);
     for (Ball& b : this->balls) {
         b.setScale({ this->scale_, this->scale_ });
     }
@@ -65,8 +65,8 @@ void Display::calculateScale() {
 
 void Display::drawBall(Ball& b) {
     b.setPosition({
-        (float)b.pos.x + this->tableOffset_.x + this->renderedOffset_.x,
-        (float)b.pos.y + this->tableOffset_.y + this->renderedOffset_.y,
+        ((float)b.pos.x + this->tableOffset_.x + this->renderedOffset_.x) * this->scale_,
+        ((float)b.pos.y + this->tableOffset_.y + this->renderedOffset_.y) * this->scale_,
     });
     this->window_.draw(b);
 }
@@ -92,20 +92,20 @@ void Display::update() {
                     this->window_.close();
                 }
                 if (key->code == sf::Keyboard::Key::Space) {
-                    balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0);
+                    balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0, this->scale_);
                     // balls.back().mass = 0.5; // messing with mass for fun
                 }
 
                 if (key->code == sf::Keyboard::Key::LShift) {
                     balls.clear();
-                    create_arranged_balls(balls);
+                    create_arranged_balls(balls, this->scale_);
                 }
             }
             if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
                if (button->button == sf::Mouse::Button::Left) {
                    sf::Vector2i mouse = sf::Mouse::getPosition();
                    holding_ball = balls.size();
-                   balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0);
+                   balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0, this->scale_);
                }
             }
             if (auto* button = event->getIf<sf::Event::MouseButtonReleased>()) {

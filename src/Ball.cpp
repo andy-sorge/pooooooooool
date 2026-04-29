@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-Ball::Ball(Vector position, Vector velocity, int8_t ball_number) :
+Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
     sf::Sprite(resolveTexture(ball_number))
 {
     this->setOrigin({ 96, 96 }); // center the balls position
@@ -18,6 +18,7 @@ Ball::Ball(Vector position, Vector velocity, int8_t ball_number) :
     // this->tex_.loadFromFile(fname);
     // this->setTexture(this->tex_);  // keeps tex_ alive (it's a member)
 
+    this->setScale({ scale, scale });
     pos = position;
     vel = velocity;
     radius = BALL_RADIUS;
@@ -88,28 +89,28 @@ Ball::~Ball() = default;
 //     this->setPosition({pos.x - this->getLocalBounds().size.x / 2, pos.y - this->getLocalBounds().size.y / 2});
 // }
 
-void create_arranged_balls(std::vector<Ball>& balls) {
+void create_arranged_balls(std::vector<Ball>& balls, float scale) {
     // the *spec* is to have the eight ball in a particular position, and for
     // the back corners to each be one of solids and one of stripes
     // then the rest of the balls random
     // obv they're hardcoded rn but we can change that
-    balls.emplace_back(Vector{800,491.0}, Vector{0.0,0.0}, 1);
+    balls.emplace_back(Vector{800,491.0}, Vector{0.0,0.0}, 1, scale);
 
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*2,491 - BALL_RADIUS}, Vector{0.0,0.0}, 2);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*2,491 + BALL_RADIUS}, Vector{0.0,0.0}, 11);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*2,491 - BALL_RADIUS}, Vector{0.0,0.0}, 2, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*2,491 + BALL_RADIUS}, Vector{0.0,0.0}, 11, scale);
 
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491 - BALL_RADIUS*2}, Vector{0.0,0.0}, 4);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491}, Vector{0.0,0.0}, 8);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491 + BALL_RADIUS*2}, Vector{0.0,0.0}, 6);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491 - BALL_RADIUS*2}, Vector{0.0,0.0}, 4, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491}, Vector{0.0,0.0}, 8, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*4,491 + BALL_RADIUS*2}, Vector{0.0,0.0}, 6, scale);
 
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 - BALL_RADIUS*3}, Vector{0.0,0.0}, 7);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 - BALL_RADIUS*1}, Vector{0.0,0.0}, 5);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 + BALL_RADIUS*1}, Vector{0.0,0.0}, 9);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 + BALL_RADIUS*3}, Vector{0.0,0.0}, 10);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 - BALL_RADIUS*3}, Vector{0.0,0.0}, 7, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 - BALL_RADIUS*1}, Vector{0.0,0.0}, 5, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 + BALL_RADIUS*1}, Vector{0.0,0.0}, 9, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*6,491 + BALL_RADIUS*3}, Vector{0.0,0.0}, 10, scale);
 
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 + BALL_RADIUS*4}, Vector{0.0,0.0}, 3);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 - BALL_RADIUS*2}, Vector{0.0,0.0}, 12);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491}, Vector{0.0,0.0}, 13);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 + BALL_RADIUS*2}, Vector{0.0,0.0}, 14);
-    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 - BALL_RADIUS*4}, Vector{0.0,0.0}, 15);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 + BALL_RADIUS*4}, Vector{0.0,0.0}, 3, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 - BALL_RADIUS*2}, Vector{0.0,0.0}, 12, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491}, Vector{0.0,0.0}, 13, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 + BALL_RADIUS*2}, Vector{0.0,0.0}, 14, scale);
+    balls.emplace_back(Vector{800 + BALL_RADIUS*0.866*8,491 - BALL_RADIUS*4}, Vector{0.0,0.0}, 15, scale);
 }

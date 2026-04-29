@@ -36,6 +36,12 @@ void setupTextures() {
     for (sf::Texture& t : ballTextures) {
         t.setSmooth(true);
     }
+    for (sf::Texture& t : tableTops) {
+        t.setSmooth(true);
+    }
+    for (sf::Texture& t : tableBorders) {
+        t.setSmooth(true);
+    }
 }
 
 sf::Texture& resolveTexture(int ballNumber) {
