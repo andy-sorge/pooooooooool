@@ -34,7 +34,7 @@ private:
     sf::Vector2u physicalSize_;
     sf::Vector2u renderedSize_;
     sf::Vector2u renderedOffset_;
-    sf::Vector2u tableOffset_;
+    sf::Vector2f tableOffset_;
     sf::Vector2u logicalSize_;
     float scale_;
     
