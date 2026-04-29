@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include "message.hpp"
+#include <iostream>
 
 template <typename TProtocol>
 class Client {
@@ -62,7 +63,8 @@ private:
 	}
 
 	void doWrite() {
-		asio::async_write(_socket, asio::buffer(_queue.front().body), [this](std::error_code errorCode, std::size_t) {
+		auto buffer = std::make_shared<std::vector<uint8_t>>(_queue.front().serialize());
+		asio::async_write(_socket, asio::buffer(*buffer), [this](std::error_code errorCode, std::size_t) {
 			if (!errorCode) {
 				_queue.pop_front();
 				if (!_queue.empty()) doWrite();

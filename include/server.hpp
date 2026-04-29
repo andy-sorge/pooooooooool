@@ -6,6 +6,7 @@
 #include <set>
 #include <array>
 #include <cstdint>
+
 #include "message.hpp"
 
 template <typename TProtocol> class Room;

@@ -39,8 +39,6 @@ struct TestProtocol {
 // test message, implementing basics
 struct TestMessage : Message<TestProtocol> {
 	static TestMessage text(const std::string& string) {
-	    std::cout << "IS TEXT";
-
 		TestMessage msg;
 		msg.type = TestProtocol::MessageType::Test;
 		msg.body = std::vector<uint8_t>(string.begin(), string.end());
@@ -55,7 +53,6 @@ public:
 	using Connection<TestProtocol>::Connection;
 protected:
 	void onMessage(const Message<TestProtocol>& msg) override {
-		std::cout << "server got message";
 		Connection<TestProtocol>::room().deliver(msg);
 	}
 };
@@ -65,7 +62,7 @@ public:
 	using Client<TestProtocol>::Client;
 protected:
 	void onMessage(const Message<TestProtocol>& msg) override {
-		std::cout << "yes, hello i am a client, i got a message... " << TestClient::bodyAsString(msg) << "\n";
+		std::cout << TestClient::bodyAsString(msg) << std::endl;
 	}
 
 	static std::string bodyAsString(const Message<TestProtocol>& msg) {
