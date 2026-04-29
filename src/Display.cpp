@@ -18,7 +18,7 @@ tableBorder_(getTableBorder(seg))
     this->calculateRenderedSize();
     this->calculateRenderedOffset();
     this->calculateScale();
-    this->tableOffset_ = sf::Vector2f({ 217 * this->scale_ , 205 * this->scale_ }); // set to { 0, 205 } for middle or right
+    this->tableOffset_ = sf::Vector2f({ 217, 205 }); // set to { 0, 205 } for middle or right
     this->logicalSize_ = sf::Vector2u({ 1703, 670 }); // comment this out for multi display, set to { 1920, 670 } to test middle
 
     this->tableBorder_.setPosition({
@@ -64,8 +64,8 @@ void Display::calculateScale() {
 
 void Display::drawBall(Ball& b) {
     b.setPosition({
-        ((float)b.pos.x + this->tableOffset_.x + this->renderedOffset_.x) * this->scale_,
-        ((float)b.pos.y + this->tableOffset_.y + this->renderedOffset_.y) * this->scale_,
+        ((float)b.pos.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
+        ((float)b.pos.y + this->tableOffset_.y) * this->scale_  + this->renderedOffset_.y,
     });
     this->window_.draw(b);
 }

@@ -45,8 +45,6 @@ private:
     sf::Sprite tableTop_;
     sf::Sprite tableBorder_;
     
-    float scaleFactor_;
-    
     sf::RenderWindow window_;
     void drawBall(Ball& b);
     
