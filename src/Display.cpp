@@ -115,7 +115,7 @@ std::vector<Vector> Display::pocketCenters() const {
     pockets.push_back(Vector{0.0, 670});
     pockets.push_back(Vector{1730.0, 0.0});
     pockets.push_back(Vector{1730.0, 670});
-    for (unsigned int i = 0; i < displays; ++i) {
+    for (unsigned int i = 1; i < displays; ++i) {
         offset += i == displays - 1 ? 1703.0 : 1920.0;
         pockets.push_back(Vector{0.0 + offset, 0.0});
         pockets.push_back(Vector{0.0 + offset, 670});
