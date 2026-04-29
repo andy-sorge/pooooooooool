@@ -67,6 +67,8 @@ private:
     void broadcastState();
     void applyNetworkState(const std::vector<PoolBallState>& state);
     void recalculateLayout();
+    std::vector<Vector> pocketCenters() const;
+    bool isPocketed(const Ball& ball) const;
 
     std::unique_ptr<asio::io_context> io_;
     std::unique_ptr<PoolServer> server_;

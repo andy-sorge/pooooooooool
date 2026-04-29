@@ -1,4 +1,5 @@
 #include "../include/Physics.hpp"
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -6,6 +7,10 @@
 #include <chrono>
 #include "../include/Display.hpp"
 #include "../include/Audio.hpp"
+
+namespace {
+    constexpr float kPocketRadius = 100.0f;
+}
 
 Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
@@ -96,6 +101,37 @@ void Display::recalculateLayout() {
 
     float baseOffsetX = (index == 0) ? 217.0f : 0.0f;
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
+}
+
+std::vector<Vector> Display::pocketCenters() const {
+    unsigned int displays = this->totalDisplays_.load();
+    if (displays < 1) displays = 1;
+
+    std::vector<Vector> pockets;
+    pockets.reserve(displays * 4);
+
+    double offset = 1730.0;
+    pockets.push_back(Vector{0.0, 0.0});
+    pockets.push_back(Vector{0.0, 670});
+    pockets.push_back(Vector{1730.0, 0.0});
+    pockets.push_back(Vector{1730.0, 670});
+    for (unsigned int i = 0; i < displays; ++i) {
+        offset += i == displays - 1 ? 1703.0 : 1920.0;
+        pockets.push_back(Vector{0.0 + offset, 0.0});
+        pockets.push_back(Vector{0.0 + offset, 670});
+    }
+
+    return pockets;
+}
+
+bool Display::isPocketed(const Ball& ball) const {
+    for (const auto& pocket : pocketCenters()) {
+        const auto dist = (ball.pos - pocket).magnitude();
+        if (dist <= (kPocketRadius + ball.radius)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Display::drawBall(Ball& b) {
@@ -248,6 +284,19 @@ void Display::update() {
         this->window_.draw(this->tableTop_);
         this->window_.draw(this->tableBorder_);
 
+        // for (const auto& pocket : pocketCenters()) {
+        //     sf::CircleShape circle(kPocketRadius * this->scale_);
+        //     circle.setFillColor(sf::Color::Transparent);
+        //     circle.setOutlineColor(sf::Color::Red);
+        //     circle.setOutlineThickness(3.0f);
+        //     circle.setOrigin({ kPocketRadius * this->scale_, kPocketRadius * this->scale_ });
+        //     circle.setPosition({
+        //         ((float)pocket.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
+        //         ((float)pocket.y + this->tableOffset_.y) * this->scale_ + this->renderedOffset_.y
+        //     });
+        //     this->window_.draw(circle);
+        // }
+
         if (role_ == HOST) {
             if (this->window_.hasFocus()) { // physics
                 dt += clock.reset();
@@ -286,6 +335,10 @@ void Display::update() {
                             }
                         }
                     }
+
+                    balls.erase(std::remove_if(balls.begin(), balls.end(), [this](const Ball& ball) {
+                        return isPocketed(ball);
+                    }), balls.end());
 
                     broadcastState();
                 }
