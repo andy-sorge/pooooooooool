@@ -69,7 +69,7 @@ inline bool readPod(const std::vector<uint8_t>& data, std::size_t& offset, T& ou
     return true;
 }
 
-inline Message<PoolProtocol> makeStateMessage(const std::vector<PoolBallState>& balls) {
+inline Message<PoolProtocol> makeStateMessage(const std::vector<PoolBallState>& balls, const bool playing_music) {
     Message<PoolProtocol> msg;
     msg.type = PoolProtocol::MessageType::State;
 
@@ -86,6 +86,7 @@ inline Message<PoolProtocol> makeStateMessage(const std::vector<PoolBallState>& 
         pushPod(body, b.vx);
         pushPod(body, b.vy);
     }
+    pushPod(body, playing_music);
 
     msg.body = std::move(body);
     msg.bodyLength = static_cast<uint32_t>(msg.body.size());
@@ -93,7 +94,7 @@ inline Message<PoolProtocol> makeStateMessage(const std::vector<PoolBallState>& 
 }
 
 
-inline bool decodeStateMessage(const Message<PoolProtocol>& msg, std::vector<PoolBallState>& outBalls) {
+inline bool decodeStateMessage(const Message<PoolProtocol>& msg, std::vector<PoolBallState>& outBalls, bool& playing_music) {
     if (msg.type != PoolProtocol::MessageType::State) return false;
 
     std::size_t offset = 0;
@@ -115,6 +116,7 @@ inline bool decodeStateMessage(const Message<PoolProtocol>& msg, std::vector<Poo
         if (!readPod(msg.body, offset, b.vy)) return false;
         outBalls.push_back(b);
     }
+    if (!readPod(msg.body, offset, playing_music)) return false;
 
     return true;
 }
@@ -155,7 +157,7 @@ private:
 
 class PoolClient : public Client<PoolProtocol> {
 public:
-    using StateHandler = std::function<void(const std::vector<PoolBallState>&)>;
+    using StateHandler = std::function<void(const std::vector<PoolBallState>&, const bool playing_music)>;
 
     PoolClient(asio::io_context& io, const asio::ip::tcp::resolver::results_type& endpoints, StateHandler handler)
         : Client<PoolProtocol>(io, endpoints), handler_(std::move(handler)) {}
@@ -163,7 +165,8 @@ public:
 protected:
     void onMessage(const Message<PoolProtocol>& msg) override {
         std::vector<PoolBallState> state;
-        if (decodeStateMessage(msg, state)) handler_(state);
+        bool playing_music;
+        if (decodeStateMessage(msg, state, playing_music)) handler_(state, playing_music);
     }
 private:
     StateHandler handler_;

@@ -58,6 +58,8 @@ private:
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
 
+    bool playing_music;
+
     void setupDisplay();
     
     void calculateTransform();

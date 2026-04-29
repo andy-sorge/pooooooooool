@@ -20,6 +20,8 @@ public:
     Ball(Vector position, Vector velocity, int8_t number, float scale);
     ~Ball() override;
 
+    sf::Clock ball_hit_sound_cooldown;
+
     Vector pos;
     Vector vel;
     unit_t radius;

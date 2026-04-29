@@ -16,8 +16,7 @@ Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, unsign
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
 logicalSize_({ 1703, 670 }),
 tableTop_(getTableTop(seg)),
-tableBorder_(getTableBorder(seg))
-{
+tableBorder_(getTableBorder(seg)) {
     this->role_ = role;
     this->seg_ = seg;
     this->totalDisplays_.store(std::max(1u, totalDisplays));
@@ -51,6 +50,14 @@ tableBorder_(getTableBorder(seg))
     }
 
     setupNetworking(hostAddress);
+
+    playing_music = false;
+    // if (this->role_ == Role::HOST) {
+    //     startMusicLeft();
+    // }
+    // else if (this->role_ == Role::CLIENT) {
+    //     startMusicRight();
+    // }
 }
 
 void Display::calculateRenderedSize() {
@@ -159,8 +166,12 @@ void Display::setupNetworking(const std::string& hostAddress) {
     } else {
         asio::ip::tcp::resolver resolver(*io_);
         auto endpoints = resolver.resolve(hostAddress, kPoolPortString);
-        client_ = std::make_unique<PoolClient>(*io_, endpoints, [this](const std::vector<PoolBallState>& state) {
+        client_ = std::make_unique<PoolClient>(*io_, endpoints, [this](const std::vector<PoolBallState>& state, const bool playing_music) {
             applyNetworkState(state);
+            this->playing_music = playing_music;
+            if (playing_music && !getMusicStarted()) {
+                startMusicRight();
+            }
         });
 
         joinTimer_ = std::make_unique<asio::steady_timer>(*io_);
@@ -211,7 +222,7 @@ void Display::broadcastState() {
         });
     }
 
-    server_->broadcast(makeStateMessage(state));
+    server_->broadcast(makeStateMessage(state, playing_music));
 }
 
 void Display::update() {
@@ -258,6 +269,10 @@ void Display::update() {
                         balls.clear();
                         create_arranged_balls(balls, this->scale_);
                     }
+                    if (key->code == sf::Keyboard::Key::M) {
+                        playing_music = true;
+                        startMusicLeft();
+                    }
                 }
             }
 
@@ -298,7 +313,7 @@ void Display::update() {
         // }
 
         if (role_ == HOST) {
-            if (this->window_.hasFocus()) { // physics
+            if (true/*this->window_.hasFocus()*/) { // physics
                 dt += clock.reset();
                 clock.start();
                 sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate

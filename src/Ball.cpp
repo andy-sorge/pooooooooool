@@ -1,4 +1,5 @@
 #include "../include/Ball.hpp"
+#include "../include/Audio.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
@@ -18,6 +19,7 @@ Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
 
     // this->tex_.loadFromFile(fname);
     // this->setTexture(this->tex_);  // keeps tex_ alive (it's a member)
+    ball_hit_sound_cooldown.start();
 
     this->setScale({ scale, scale });
     pos = position;
@@ -100,11 +102,14 @@ void Ball::hit(Ball& rhs, double dt) {
     this->tick_physics(-time_of_impact);
     rhs.tick_physics(-time_of_impact);
 
-    // division split so it's more readable
-    float volume = (rhs.mass*VB.dot(VB) + this->mass*VA.dot(VA)) / 50.0 / 1000.0;
-    // float volume = VB.magnitude() + VA.magnitude() / 6000.0;
-    if (volume > 100.0) volume = 100.0;
-    playBallHit(volume);
+    if (ball_hit_sound_cooldown.getElapsedTime().asSeconds() > 0.1) {
+        ball_hit_sound_cooldown.restart();
+        // division split so it's more readable
+        float volume = (rhs.mass*VB.dot(VB) + this->mass*VA.dot(VA)) / 50.0 / 1000.0;
+        // float volume = VB.magnitude() + VA.magnitude() / 6000.0;
+        if (volume > 100.0) volume = 100.0;
+        playBallHitBall(volume);
+    }
 }
 Vector Ball::friction() const {
     return vel.normalized() * mass * 200;

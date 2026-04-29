@@ -12,3 +12,9 @@ void playBallHitCushions(float volume=100.0);
 
 // Ball sunk into a pocket
 void playBallSunk(int num_balls_already_sunk);
+
+void startMusicLeft();
+
+void startMusicRight();
+
+bool getMusicStarted();
