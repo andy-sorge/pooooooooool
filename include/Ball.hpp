@@ -30,10 +30,10 @@ public:
     void hit(Ball& rhs);
     [[nodiscard]] Vector friction() const;
     void tick_physics(double dt);
+    // void setCenter(sf::Vector2f pos);
 
 private:
     sf::Texture tex_;
-    void setCenter(sf::Vector2f pos);
 };
 
 void create_arranged_balls(std::vector<Ball>& balls);

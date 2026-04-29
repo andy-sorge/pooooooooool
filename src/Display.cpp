@@ -1,4 +1,6 @@
 #include "../include/Physics.hpp"
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
 #include "../include/Display.hpp"
 
@@ -13,34 +15,67 @@ tableBorder_(getTableBorder(seg))
     // table border is 205 at top and bottom
     // table border is 217 at left and right
     this->physicalSize_ = this->window_.getSize();
+    this->calculateRenderedSize();
+    this->calculateRenderedOffset();
+    this->tableOffset_ = sf::Vector2u({ 217, 205 }); // set to { 0, 205 } for middle or right
+    this->logicalSize_ = sf::Vector2u({ 1703, 670 }); // comment this out for multi display, set to { 1920, 670 } to test middle
+    this->calculateScale();
+
+    this->tableBorder_.setPosition({
+        (float)this->renderedOffset_.x,
+        (float)this->renderedOffset_.y
+    });
+    this->tableBorder_.setScale({ this->scale_, this->scale_});
+    this->tableTop_.setPosition({
+        (float)this->renderedOffset_.x,
+        (float)this->renderedOffset_.y
+    });
+    this->tableTop_.setScale({ this->scale_, this->scale_});
     
-    this->calculateTransform();
+    setupTextures();
+
     // for (int i = 0; i <= 8; ++i) {
     //     balls.emplace_back(Vector{100.5*i,200.0}, Vector{500.0*i,1000.0}, i);
     // }
     create_arranged_balls(balls);
-    
+    for (Ball& b : this->balls) {
+        b.setScale({ this->scale_, this->scale_ });
+    }
 }
 
-void Display::calculateTransform() {
-    
+void Display::calculateRenderedSize() {
+    this->physicalSize_ = this->window_.getSize();
+    this->renderedSize_ = sf::Vector2u({
+        this->physicalSize_.x,
+        this->physicalSize_.x * 9 / 16
+    });
 }
 
+void Display::calculateRenderedOffset() {
+    this->renderedOffset_ = sf::Vector2u({
+        this->physicalSize_.x - this->renderedSize_.x,
+        this->physicalSize_.y - this->renderedSize_.y
+    });
+}
+
+void Display::calculateScale() {
+    this->scale_ = (float)this->renderedSize_.x / 1920;
+    std::cout << this->scale_ << std::endl;
+}
+
+void Display::drawBall(Ball& b) {
+    b.setPosition({
+        (float)b.pos.x + this->tableOffset_.x + this->renderedOffset_.x,
+        (float)b.pos.y + this->tableOffset_.y + this->renderedOffset_.y,
+    });
+    this->window_.draw(b);
+}
 
 Display::~Display() {
 
 }
 
-void Display::setupDisplay() {
-
-}
-
 void Display::update() {
-
-    auto window_size = sf::Vector2u({ 1703, 670 });
-    auto table_offset = sf::Vector2u({ 217, 205 });
-    std::cout << window_size.x << " " << this->window_.getSize().y << std::endl;
-
     sf::Clock clock;
     sf::Time dt = sf::Time::Zero;
     int holding_ball = -1;
@@ -82,8 +117,8 @@ void Display::update() {
             }
         }
 
-        this->window_.clear(sf::Color(0x08, 0x33, 0x00));
-        
+        this->window_.clear(sf::Color::Black);
+
         this->window_.draw(this->tableTop_);
         this->window_.draw(this->tableBorder_);
 
@@ -96,27 +131,27 @@ void Display::update() {
                 initial_ball_velocities.clear();
                 for (Ball& ball: balls) {
                     initial_ball_velocities.push_back(ball.vel);
-                    this->window_.draw(ball);
+                    this->drawBall(ball);
                     ball.tick_physics(between_frames.asSeconds());
                 }
                 for (int i = 0; i < balls.size(); ++i) {
                     Ball& ball1 = balls[i];
                     // flip if it hits the walls (currently just edge of screen)
                     // needs to correctly move the ball backwards in time out of the wall instead of just setting position lowk
-                    if (ball1.pos.y < table_offset.y + ball1.radius ) {
-                        ball1.pos.y = table_offset.y + ball1.radius;
+                    if (ball1.pos.y < ball1.radius) {
+                        ball1.pos.y = ball1.radius;
                         ball1.vel.y = -ball1.vel.y - ball1.friction().magnitude();
                     }
-                    if (ball1.pos.y > window_size.y - ball1.radius) {
-                        ball1.pos.y = window_size.y - ball1.radius;
+                    if (ball1.pos.y > this->logicalSize_.y - ball1.radius) {
+                        ball1.pos.y = this->logicalSize_.y - ball1.radius;
                         ball1.vel.y = -ball1.vel.y + ball1.friction().magnitude();
                     }
-                    if (ball1.pos.x < table_offset.x + ball1.radius) {
-                        ball1.pos.x = table_offset.x + ball1.radius;
+                    if (ball1.pos.x < ball1.radius) {
+                        ball1.pos.x = ball1.radius;
                         ball1.vel.x = -ball1.vel.x - ball1.friction().magnitude();
                     }
-                    if (ball1.pos.x > window_size.x - ball1.radius) {
-                        ball1.pos.x = window_size.x - ball1.radius;
+                    if (ball1.pos.x > this->logicalSize_.x - ball1.radius) {
+                        ball1.pos.x = this->logicalSize_.x - ball1.radius;
                         ball1.vel.x = -ball1.vel.x + ball1.friction().magnitude();
                     }
                     // collisions with other balls (could be improved by correcting the position before doing the hit)
@@ -130,7 +165,7 @@ void Display::update() {
                 }
             }
             for (Ball& ball: balls) {
-                this->window_.draw(ball);
+                this->drawBall(ball);
             }
         }
 

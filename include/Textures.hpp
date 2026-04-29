@@ -9,6 +9,8 @@ enum TableSegment {
     RIGHT
 };
 
+void setupTextures();
+
 sf::Texture& resolveTexture(int ballNumber);
 
 sf::Texture& getTableTop(TableSegment seg);

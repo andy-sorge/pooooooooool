@@ -32,6 +32,12 @@ std::array<sf::Texture, 3> tableBorders = {
     sf::Texture("graphics/table/over.png", false, sf::IntRect({3840, 0}, {1920, 1080})),
 };
 
+void setupTextures() {
+    for (sf::Texture& t : ballTextures) {
+        t.setSmooth(true);
+    }
+}
+
 sf::Texture& resolveTexture(int ballNumber) {
     return ballTextures.at(ballNumber);
 }

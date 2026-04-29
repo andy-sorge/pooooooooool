@@ -8,6 +8,7 @@
 Ball::Ball(Vector position, Vector velocity, int8_t ball_number) :
     sf::Sprite(resolveTexture(ball_number))
 {
+    this->setOrigin({ 96, 96 }); // center the balls position
     number = ball_number;  // assign FIRST
 
     // std::string fname("graphics/balls/");
@@ -27,7 +28,7 @@ Ball::Ball(Vector position, Vector velocity, int8_t ball_number) :
     else if (number == 8)                 { type = BallType::Eight;  }
     else if (number >= 9 && number <= 15) { type = BallType::Stripe; }
 
-    this->setCenter(pos.sf());
+    this->setPosition(pos.sf());
 }
 
 void Ball::hit(Ball& rhs) {
@@ -78,14 +79,14 @@ void Ball::tick_physics(double dt) { // dt in seconds
     // std:: cout << "vel " << vel.x << ' ' << vel.y << std::endl;
     // std:: cout << "dt " << dt << std::endl;
 
-    setCenter(pos.sf());
+    setPosition(pos.sf());
 }
 
 Ball::~Ball() = default;
 
-void Ball::setCenter(sf::Vector2f pos) {
-    this->setPosition({pos.x - this->getLocalBounds().size.x / 2, pos.y - this->getLocalBounds().size.y / 2});
-}
+// void Ball::setCenter(sf::Vector2f pos) {
+//     this->setPosition({pos.x - this->getLocalBounds().size.x / 2, pos.y - this->getLocalBounds().size.y / 2});
+// }
 
 void create_arranged_balls(std::vector<Ball>& balls) {
     // the *spec* is to have the eight ball in a particular position, and for
