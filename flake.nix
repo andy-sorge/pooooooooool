@@ -11,10 +11,14 @@
         clang-tools
         cmake
         gnumake
-        
+
         sfml
         asio
       ];
+
+      shellHook = ''
+        export ASIO_INCLUDE_DIR=${pkgs.asio}/include
+      '';
     };
   };
 }
