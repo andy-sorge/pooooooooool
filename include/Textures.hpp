@@ -14,5 +14,11 @@ void setupTextures();
 sf::Texture& resolveTexture(int ballNumber);
 
 sf::Texture& getTableTop(TableSegment seg);
-
 sf::Texture& getTableBorder(TableSegment seg);
+
+sf::Texture& getUiCrown();
+sf::Texture& getUiSolids();
+sf::Texture& getUiStripes();
+
+sf::Texture& getCue();
+sf::Texture& getBallTriangle();
