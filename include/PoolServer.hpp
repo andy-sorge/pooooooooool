@@ -11,14 +11,14 @@
 
 static sf::Packet packageBalls(std::vector<BallState>& balls) { // package sent by serber
     auto packet = sf::Packet();
-    packet << PacketType::GameState << balls.size();
+    packet << PacketType::GameState << static_cast<uint16_t>(balls.size());
     for (auto& ball : balls) packet << ball;
     return packet;
 }
 
 static sf::Packet packageDisplays(std::size_t& displays) { // package sent by server
     auto packet = sf::Packet();
-    packet << PacketType::Connection << displays;
+    packet << PacketType::Connection << static_cast<uint16_t>(displays);
     return packet;
 }
 
