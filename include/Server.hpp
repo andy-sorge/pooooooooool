@@ -74,8 +74,9 @@ private:
     void listen() {
         _listener.setBlocking(true);
 
+        if (_listener.listen(_port) != sf::Socket::Status::Done) throw std::runtime_error("failed to bind");
+
         while (_running) {
-            if (_listener.listen(_port) == sf::Socket::Status::Done) { // connects clients
                 auto connection = std::make_unique<sf::TcpSocket>();
                 if (_listener.accept(*connection) == sf::Socket::Status::Done) {
                     if (!connection) throw std::runtime_error("big bad error, nullptr");
@@ -83,9 +84,7 @@ private:
                     onConnection(*connection);
                     auto connections = _connections.lock();
                     connections->emplace_back(std::move(connection));
-                    _port++;
                 }
-            }
         }
     }
 };
