@@ -16,11 +16,14 @@
 #include "SFML/Graphics/RenderWindow.hpp"
 
 #include "Textures.hpp"
+#include "Utilities.hpp"
 #include "Vector.hpp"
 #include "Display.hpp"
 #include "Vector.hpp"
 
 Display::Display(Synchronized<State>& state, sf::RenderWindow& window) :
+cueTexture_("graphics/other/cue.png"),
+cueSprite_(cueTexture_),
 state_(state), window_(window), border_(sf::Sprite(getTableBorder(TableSegment::Left))), top_(sf::Sprite(getTableTop(TableSegment::Left))) {
     update();
 }
@@ -47,6 +50,10 @@ void Display::update() {
     this->border_.setScale({ this->scale_, this->scale_});
     this->top_.setPosition({ static_cast<float>(renderedOffset_.x), static_cast<float>(renderedOffset_.y) });
     this->top_.setScale({ this->scale_, this->scale_});
+    
+    cueSprite_.setScale({ this->scale_, this->scale_ });
+    auto size = cueTexture_.getSize();
+    cueSprite_.setOrigin({ static_cast<float>(size.x) / 2.0f, 0 });
 }
 
 void Display::scaleBalls(std::vector<Ball>& balls) {
@@ -69,6 +76,32 @@ void Display::render() {
 
     this->window_.draw(this->top_);
     this->window_.draw(this->border_);
+    
+    if (auto state = state_.lock(); state->role == Host) {
+        controller_.update();
+        sf::Vector2f dir = controller_.direction();
+        Vector shotDir{-dir.x, -dir.y};
+        aimDir_ = dir;
+        aimPower_ = std::clamp(controller_.power(), 0.0f, 1.0f);
+        aiming_ = shotDir.magnitude() > 0.05f;
+
+        if (controller_.hitPressed()) {
+
+
+            if (shotDir.magnitude() > 0.05) {
+                float speed = 3000.0f * std::max(0.1f, aimPower_);
+
+                shotDir = shotDir.normalized() * speed;
+                for (Ball& ball : balls) {
+                    if (ball.number == 0) {
+                        ball.vel = shotDir;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 
     // for (const auto& pocket : pocketCenters()) {
     //     sf::CircleShape circle(kPocketRadius * this->scale_);

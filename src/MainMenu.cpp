@@ -120,17 +120,17 @@ MainMenu::Result MainMenu::run() {
         ipText.setFillColor(ipInput.empty() ? sf::Color(140, 140, 140) : sf::Color::White);
         ipText.setPosition({205.0f, 400.0f});
 
-        window.clear(sf::Color(10, 80, 10));
-        window.draw(crown);
-        window.draw(title);
-        window.draw(hostButton);
-        window.draw(joinButton);
-        window.draw(ipBox);
-        window.draw(hostText);
-        window.draw(joinText);
-        window.draw(ipLabel);
-        window.draw(ipText);
-        window.display();
+        window_.clear(sf::Color(10, 80, 10));
+        window_.draw(crown);
+        window_.draw(title);
+        window_.draw(hostButton);
+        window_.draw(joinButton);
+        window_.draw(ipBox);
+        window_.draw(hostText);
+        window_.draw(joinText);
+        window_.draw(ipLabel);
+        window_.draw(ipText);
+        window_.display();
     }
 
     return result;

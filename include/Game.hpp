@@ -37,6 +37,7 @@ public:
         //sf::RenderWindow window2(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen);
         auto& display = display_.emplace(state_, window_);
         auto& physics = physics_.emplace(state_);
+        controller_.emplace();
 
         if (result.role == Role::Host) {
             host();
@@ -76,6 +77,7 @@ private:
     sf::RenderWindow window_;
     std::optional<Display> display_;
     std::optional<Physics> physics_;
+    std::optional<ControllerInput> controller_;
 
     std::optional<std::reference_wrapper<Ball>> cue_;
 
@@ -184,6 +186,8 @@ private:
 
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
+
+            controller_.value().update(event);
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->code == sf::Keyboard::Key::Escape) this->window_.close();

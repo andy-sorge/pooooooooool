@@ -14,12 +14,10 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <asio.hpp>
 #include "../include/Textures.hpp"
 #include "SFML/Graphics.hpp"
 #include "Ball.hpp"
 #include "ControllerInput.hpp"
-#include "PoolNetwork.hpp"
 
 typedef struct rect {
     int x;
@@ -62,12 +60,12 @@ private:
     void calculateRenderedOffset();
     void calculateScale();
         
-    sf::Sprite tableTop_;
-    sf::Sprite tableBorder_;
+    // sf::Sprite tableTop_;
+    // sf::Sprite tableBorder_;
     sf::Texture cueTexture_;
     sf::Sprite cueSprite_;
     
-    sf::RenderWindow window_;
+    // sf::RenderWindow window_;
     void drawBall(Ball& b);
     
     std::vector<Ball> balls;
@@ -80,7 +78,7 @@ private:
     sf::Sprite top_;
     sf::Sprite border_;
 
-    void drawBall(Ball& b);
+    // void drawBall(Ball& b);  
 
     void calculateTransform();
     void calculateLogical();
