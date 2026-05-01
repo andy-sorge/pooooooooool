@@ -38,7 +38,6 @@ public:
         //sf::RenderWindow window2(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen);
         auto& display = display_.emplace(state_, window_);
         auto& physics = physics_.emplace(state_);
-        //controller_.emplace();
 
         if (result.role == Role::Host) {
             host();
@@ -75,11 +74,12 @@ public:
     }
 private:
     Synchronized<State> state_; // game state, ball positions, role, etc.
+    std::optional<uint16_t> cueBallIndex_; // cue ball index for convenience (none when the cue is destroyed)
 
     sf::RenderWindow window_;
     std::optional<Display> display_;
     std::optional<Physics> physics_;
-    //std::optional<ControllerInput> controller_;
+    ControllerInput controller_;
 
     std::optional<std::reference_wrapper<Ball>> cue_;
 
@@ -186,7 +186,14 @@ private:
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
 
-            //controller_.value().update(event);
+            controller_.update(event);
+            if (auto* motion = event->getIf<sf::Event::MouseMoved>()) {
+                if (!cueBallIndex_.has_value()) { // if the state is needing to place the damn ball
+                    motion->position.x;
+                    // cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
+                    // really we should show a picture of the ball and then only actually put it down when you click...
+                }
+            }
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->code == sf::Keyboard::Key::Escape) this->window_.close();
