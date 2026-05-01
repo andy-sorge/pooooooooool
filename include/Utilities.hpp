@@ -6,7 +6,7 @@
 
 namespace PoolConstants {
     constexpr static float pocketRadius = 100.0f;
-    constexpr static std::uint16_t port = 58008;
+    constexpr static std::uint16_t port = 58009;
 }
 
 enum Role {

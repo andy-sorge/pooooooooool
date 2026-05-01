@@ -7,10 +7,11 @@
 #include "Ball.hpp"
 #include "Textures.hpp"
 #include "Utilities.hpp"
+#include "Networking.hpp"
 
 class Display {
 public:
-    Display(State& state, sf::RenderWindow& window);
+    Display(Synchronized<State>& state, sf::RenderWindow& window);
 
     void render();
 
@@ -22,9 +23,9 @@ public:
 
     void update();
 
-    void scaleBalls();
+    void scaleBalls(std::vector<Ball>& balls);
 private:
-    State& state_;
+    Synchronized<State>& state_;
     sf::RenderWindow& window_;
 
     // display positioning and scale

@@ -41,8 +41,9 @@ public:
         if (result.role == Role::Host) {
             host();
 
-            create_arranged_balls(state_.balls);
-            display.scaleBalls();
+            auto state = state_.lock();
+            create_arranged_balls(state->balls);
+            display.scaleBalls(state->balls);
         } else client(result.host);
 
 
@@ -51,11 +52,8 @@ public:
         sf::Time last = sf::Time::Zero;
 
         while(window_.isOpen()) {
-            {
-                auto state = state_.lock();
-                display.render();
-                physics.step();
-            }
+            display.render();
+            physics.step();
 
             if (result.role == Role::Host) {
                 auto elapsed = clock.getElapsedTime();
@@ -92,8 +90,10 @@ private:
 
         server_->registerConnection([this]() {
             std::cout << "client connected" << std::endl;
-            auto state = state_.lock();
-            _connection.push(package(++state->displays));
+            {
+                auto state = state_.lock();
+                _connection.push(package(++state->displays));
+            }
             if (display_.has_value()) display_.value().update();
         });
 
@@ -114,18 +114,22 @@ private:
 
         client_->registerHandle(PacketType::Balls, [this](sf::Packet& packet) {
             std::cout << "recieved balls packet!" << std::endl;
-            interpret(packet, state_.balls);
-            display_.value().scaleBalls();
+            auto state = state_.lock();
+            interpret(packet, state->balls);
+            display_.value().scaleBalls(state->balls);
         });
         client_->registerHandle(PacketType::Connection, [this](sf::Packet& packet) {
             std::cout << "recieved connection packet!" << std::endl;
-            std::cout << "old client state... " << state_.index << ", " << state_.displays << std::endl;
-            interpret(packet, state_.displays);
-            state_.index = state_.displays - 1;
-            std::cout << state_.index << std::endl;
+            {
+                auto state = state_.lock();
+                std::cout << "old client state... " << state->index << ", " << state->displays << std::endl;
+                interpret(packet, state->displays);
+                state->index = state->displays - 1;
+                std::cout << state->index << std::endl;
+            }
             if (display_.has_value()) display_.value().update();
             else std::cerr << "display not ready!";
-            std::cout << "new client state... " << state_.index << ", " << state_.displays << std::endl;
+            //std::cout << "new client state... " << state->index << ", " << state->displays << std::endl;
         });
 
         client_->connect(host, PoolConstants::port);
@@ -147,24 +151,26 @@ private:
     // game calculations
     void computePocketCenters() {
         std::vector<Vector> pockets;
-        state_.pockets.clear();
-        state_.pockets.reserve(state_.displays * 4);
+        auto state = state_.lock();
+        state->pockets.clear();
+        state->pockets.reserve(state->displays * 4);
 
         double offset = 1730.0;
-        state_.pockets.push_back(Vector{0.0, 0.0});
-        state_.pockets.push_back(Vector{0.0, 670});
-        state_.pockets.push_back(Vector{1730.0, 0.0});
-        state_.pockets.push_back(Vector{1730.0, 670});
+        state->pockets.push_back(Vector{0.0, 0.0});
+        state->pockets.push_back(Vector{0.0, 670});
+        state->pockets.push_back(Vector{1730.0, 0.0});
+        state->pockets.push_back(Vector{1730.0, 670});
 
-        for (unsigned int i = 1; i < state_.displays; ++i) {
-            offset += i == state_.displays - 1 ? 1703.0 : 1920.0;
-            state_.pockets.push_back(Vector{0.0 + offset, 0.0});
-            state_.pockets.push_back(Vector{0.0 + offset, 670});
+        for (unsigned int i = 1; i < state->displays; ++i) {
+            offset += i == state->displays - 1 ? 1703.0 : 1920.0;
+            state->pockets.push_back(Vector{0.0 + offset, 0.0});
+            state->pockets.push_back(Vector{0.0 + offset, 670});
         }
     }
 
-    bool isPocketed(const Ball& ball) const {
-        for (const auto& pocket : state_.pockets) {
+    bool isPocketed(const Ball& ball) {
+        auto state = state_.lock();
+        for (const auto& pocket : state->pockets) {
             const auto dist = (ball.pos - pocket).magnitude();
             if (dist <= (PoolConstants::pocketRadius + ball.radius)) return true;
         }
@@ -174,17 +180,19 @@ private:
 
     void input() {
         while (const std::optional event = this->window_.pollEvent()) {
+            auto state = state_.lock();
+
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->code == sf::Keyboard::Key::Escape) this->window_.close();
 
-                if (state_.role != Role::Host) continue;
+                if (state->role != Role::Host) continue;
 
                 switch (key->code) {
-                case sf::Keyboard::Key::Space: display_.value().scale(state_.balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0)); break;
-                case sf::Keyboard::Key::LShift: create_arranged_balls(state_.balls); display_.value().scaleBalls(); break;
+                case sf::Keyboard::Key::Space: display_.value().scale(state->balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0)); break;
+                case sf::Keyboard::Key::LShift: create_arranged_balls(state->balls); display_.value().scaleBalls(state->balls); break;
                 //case sf::Keyboard::Key::M: startMusicLeft(); break; // TODO toggle music
                 default: break;
                 }
@@ -193,7 +201,7 @@ private:
             if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (button->button == sf::Mouse::Button::Left) {
                     sf::Vector2i mouse = sf::Mouse::getPosition();
-                    cue_.emplace(state_.balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
+                    cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
                     display_.value().scale(cue_.value());
                 }
             }

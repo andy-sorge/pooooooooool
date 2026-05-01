@@ -9,15 +9,18 @@
 #include "Display.hpp"
 #include "Vector.hpp"
 
-Display::Display(State& state, sf::RenderWindow& window) :
+Display::Display(Synchronized<State>& state, sf::RenderWindow& window) :
 state_(state), window_(window), border_(sf::Sprite(getTableBorder(TableSegment::Left))), top_(sf::Sprite(getTableTop(TableSegment::Left))) {
     update();
 }
 
 void Display::update() {
-    if (state_.index == 0) segment_ = TableSegment::Left;
-    else if (state_.index == state_.displays - 1) segment_ = TableSegment::Right;
-    else segment_ = TableSegment::Center;
+    {
+        auto state = state_.lock();
+        if (state->index == 0) segment_ = TableSegment::Left;
+        else if (state->index == state->displays - 1) segment_ = TableSegment::Right;
+        else segment_ = TableSegment::Center;
+    }
     // table border is 205 at top and bottom
     // table border is 217 at left and right
 
@@ -35,8 +38,8 @@ void Display::update() {
     this->top_.setScale({ this->scale_, this->scale_});
 }
 
-void Display::scaleBalls() {
-    for (auto& ball : state_.balls) ball.setScale({ scale_, scale_ });
+void Display::scaleBalls(std::vector<Ball>& balls) {
+    for (auto& ball : balls) ball.setScale({ scale_, scale_ });
 }
 
 void Display::drawBall(Ball& ball) {
@@ -72,7 +75,10 @@ void Display::render() {
     // physics
     //
     // clients draw balls
-    for (Ball& ball: state_.balls) this->drawBall(ball);
+    {
+        auto state = state_.lock();
+        for (Ball& ball: state->balls) this->drawBall(ball);
+    }
 
     window_.display();
 }
@@ -92,18 +98,19 @@ void Display::calculateScale() {
 }
 
 void Display::calculateLayout() {
+    auto state = state_.lock();
     unsigned int logicalWidth = 1703;
-    if (state_.displays == 1) logicalWidth = 1703;
-    else if (state_.displays == 2) logicalWidth = 1703 * 2;
-    else logicalWidth = 1703 * 2 + 1920 * (state_.displays - 2);
+    if (state->displays == 1) logicalWidth = 1703;
+    else if (state->displays == 2) logicalWidth = 1703 * 2;
+    else logicalWidth = 1703 * 2 + 1920 * (state->displays - 2);
 
-    state_.logicalSpace = sf::Vector2u({ logicalWidth, 670 });
+    state->logicalSpace = sf::Vector2u({ logicalWidth, 670 });
 
     unsigned int displayOffsetX = 0;
-    if (state_.index == 0) displayOffsetX = 0;
-    else if (state_.index == state_.displays - 1) displayOffsetX = logicalWidth - 1703;
-    else displayOffsetX = 1703 + 1920 * (state_.index - 1);
+    if (state->index == 0) displayOffsetX = 0;
+    else if (state->index == state->displays - 1) displayOffsetX = logicalWidth - 1703;
+    else displayOffsetX = 1703 + 1920 * (state->index - 1);
 
-    float baseOffsetX = (state_.index == 0) ? 217.0f : 0.0f;
+    float baseOffsetX = (state->index == 0) ? 217.0f : 0.0f;
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }
