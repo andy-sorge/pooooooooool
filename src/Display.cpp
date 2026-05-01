@@ -33,7 +33,7 @@ logicalSize_({ 1703, 670 }),
 displays_(displays),
 index_(index),
 tableTop_(getTableTop(seg)),
-tableBorder_(getTableBorder(seg)) {
+tableBorder_(getTableBorder(seg)) {tableTop_(getTableTop(seg)),
     this->role_ = role;
     this->seg_ = seg;
     // table border is 205 at top and bottom

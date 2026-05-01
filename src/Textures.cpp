@@ -1,6 +1,15 @@
 #include "Textures.hpp"
 #include <SFML/Graphics/Texture.hpp>
 
+// UI
+sf::Texture uiCrown("graphics/other/crown.png");
+sf::Texture uiSolids("graphics/other/solids.png");
+sf::Texture uiStripes("graphics/other/stripes.png");
+
+// On The Table
+sf::Texture cue("graphics/other/cue.png");
+sf::Texture ballTriangle("graphics/other/ball-triangle.png");
+
 std::array<sf::Texture, 16> ballTextures = {
     sf::Texture("graphics/balls/0.png"),
     sf::Texture("graphics/balls/1.png"),
@@ -33,6 +42,11 @@ std::array<sf::Texture, 3> tableBorders = {
 };
 
 void setupTextures() {
+    uiCrown.setSmooth(true);
+    uiSolids.setSmooth(true);
+    uiStripes.setSmooth(true);
+    cue.setSmooth(true);
+    ballTriangle.setSmooth(true);
     for (sf::Texture& t : ballTextures) {
         t.setSmooth(true);
     }
@@ -54,4 +68,21 @@ sf::Texture& getTableTop(TableSegment seg) {
 
 sf::Texture& getTableBorder(TableSegment seg) {
     return tableBorders[seg];
+}
+
+sf::Texture& getUiCrown() {
+    return uiCrown;
+}
+sf::Texture& getUiSolids() {
+    return uiSolids;
+}
+sf::Texture& getUiStripes() {
+    return uiStripes;
+}
+
+sf::Texture& getCue() {
+    return cue;
+}
+sf::Texture& getBallTriangle() {
+    return ballTriangle;
 }
