@@ -34,9 +34,8 @@ public:
     void stop() {
         _running = false;
         if (_worker.joinable()) _worker.join();
-
-        _listener.close();
         if (_listen.joinable()) _listen.join();
+        _listener.close();
     }
 
     void send(const sf::Packet& packet) {
@@ -80,7 +79,7 @@ private:
     }
 
     void listen() {
-        _listener.setBlocking(true);
+        _listener.setBlocking(false);
 
         if (_listener.listen(_port) != sf::Socket::Status::Done) throw std::runtime_error("failed to bind");
 
@@ -94,5 +93,7 @@ private:
                     connections->emplace_back(std::move(connection));
                 }
         }
+
+        _listener.close();
     }
 };
