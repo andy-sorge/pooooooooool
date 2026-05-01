@@ -1,4 +1,5 @@
 #include "../include/MainMenu.hpp"
+#include "../include/Textures.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
@@ -20,6 +21,10 @@ MainMenu::Result MainMenu::run() {
     if (!font.openFromFile("Roboto-Regular.ttf")) {
         std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
     }
+
+    sf::Sprite crown(getUiCrown());
+    crown.setScale({0.4, 0.4});
+    crown.setPosition({200, 20});
 
     sf::Text title(font, "POOOOOOOOOOL", 48);
     title.setFillColor(sf::Color::White);
@@ -115,7 +120,8 @@ MainMenu::Result MainMenu::run() {
         ipText.setFillColor(ipInput.empty() ? sf::Color(140, 140, 140) : sf::Color::White);
         ipText.setPosition({205.0f, 400.0f});
 
-        window.clear(sf::Color(10, 10, 10));
+        window.clear(sf::Color(10, 80, 10));
+        window.draw(crown);
         window.draw(title);
         window.draw(hostButton);
         window.draw(joinButton);
