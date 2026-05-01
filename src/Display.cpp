@@ -32,7 +32,7 @@ void Display::update() {
     {
         auto state = state_.lock();
 
-        if (!state->index.has_value() || state->index.value_or(0) == 0) segment_ = TableSegment::Left;
+        if (state->index.value_or(0) == 0) segment_ = TableSegment::Left;
         else if (state->index.value() == state->displays - 1) segment_ = TableSegment::Right;
         else segment_ = TableSegment::Center;
     }
@@ -152,10 +152,10 @@ void Display::calculateLayout() {
     state->logicalSpace = sf::Vector2u({ logicalWidth, 670 });
 
     unsigned int displayOffsetX = 0;
-    if (!state->index.has_value() || state->index.value() == 0) displayOffsetX = 0;
+    if (state->index.value_or(0) == 0) displayOffsetX = 0;
     else if (state->index.value() == state->displays - 1) displayOffsetX = logicalWidth - 1703;
     else displayOffsetX = 1703 + 1920 * (state->index.value() - 1);
 
-    float baseOffsetX = (!state->index.has_value() || state->index.value() == 0) ? 217.0f : 0.0f;
+    float baseOffsetX = (state->index.value_or(0) == 0) ? 217.0f : 0.0f;
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }

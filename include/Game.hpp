@@ -20,6 +20,7 @@
 #include "Utilities.hpp"
 #include "Networking.hpp"
 
+
 class Game {
 public:
     Game() : window_(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close) {}
@@ -37,13 +38,13 @@ public:
         //sf::RenderWindow window2(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen);
         auto& display = display_.emplace(state_, window_);
         auto& physics = physics_.emplace(state_);
-        controller_.emplace();
+        //controller_.emplace();
 
         if (result.role == Role::Host) {
             host();
-
             auto state = state_.lock();
-            state->index.value() = 0;
+            state->index = 0;
+            std::cout << "help me\n";
             create_arranged_balls(state->balls);
             display.scaleBalls(state->balls);
         } else client(result.host);
@@ -78,7 +79,7 @@ private:
     sf::RenderWindow window_;
     std::optional<Display> display_;
     std::optional<Physics> physics_;
-    std::optional<ControllerInput> controller_;
+    //std::optional<ControllerInput> controller_;
 
     std::optional<std::reference_wrapper<Ball>> cue_;
 
@@ -125,14 +126,11 @@ private:
             std::cout << "recieved connection packet!" << std::endl;
             {
                 auto state = state_.lock();
-                //std::cout << "old client state... " << state->index << ", " << state->displays << std::endl;
                 interpret(packet, state->displays);
-                if (!state->index.has_value()) state->index.value() = state->displays - 1;
-                //std::cout << state->index << std::endl;
+                if (!state->index.has_value()) state->index = state->displays - 1;
             }
             if (display_.has_value()) display_.value().update();
             else std::cerr << "display not ready!";
-            //std::cout << "new client state... " << state->index << ", " << state->displays << std::endl;
         });
 
         client_->connect(host, PoolConstants::port);
@@ -188,7 +186,7 @@ private:
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
 
-            controller_.value().update(event);
+            //controller_.value().update(event);
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->code == sf::Keyboard::Key::Escape) this->window_.close();
