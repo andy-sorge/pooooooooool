@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <optional>
 
 
 constexpr float deadband = 5.0f;
@@ -23,25 +25,32 @@ float applyDeadzone(float raw) {
 ControllerInput::ControllerInput(unsigned int joystickIndex)
     : index_(joystickIndex) {}
 
-void ControllerInput::update() {
+void ControllerInput::update(const std::optional<sf::Event>& event) {
     if (!connected()) {
         direction_ = {0.0f, 0.0f};
         power_ = 0.0f;
         hitPressed_ = false;
         prevHit_ = false;
+        std::cout << "not connected" << std::endl;
         return;
     }
-
-    float x = hasAxis(sf::Joystick::Axis::X) ? readAxis(sf::Joystick::Axis::X) : 0.0f;
-    float y = hasAxis(sf::Joystick::Axis::Y) ? readAxis(sf::Joystick::Axis::Y) : 0.0f;
-    direction_ = { applyDeadzone(x), applyDeadzone(y) };
+    if (auto* joystick_move = event->getIf<sf::Event::JoystickMoved>()) {
+        if (joystick_move->axis == sf::Joystick::Axis::X) {
+            direction_.x = applyDeadzone(joystick_move->position);
+        }
+        if (joystick_move->axis == sf::Joystick::Axis::Y) {
+            direction_.y = applyDeadzone(joystick_move->position);
+        }
+    }
+    hitPressed_ = false;
+    if (auto* button_press = event->getIf<sf::Event::JoystickButtonPressed>()) {
+        if (button_press->button == 7) {
+            hitPressed_ = true;
+        }
+    }
 
     float power = std::sqrt(direction_.x * direction_.x + direction_.y * direction_.y);
     power_ = std::clamp(power, 0.0f, 1.0f);
-
-    bool hit = sf::Joystick::isButtonPressed(index_, 7);
-    hitPressed_ = hit && !prevHit_;
-    prevHit_ = hit;
 }
 
 bool ControllerInput::connected() const {

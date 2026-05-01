@@ -1,18 +1,21 @@
 #pragma once
 
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 #include <SFML/Window/Joystick.hpp>
+#include <optional>
 
 class ControllerInput {
 public:
     explicit ControllerInput(unsigned int joystickIndex = 0);
 
-    void update();
+    void update(const std::optional<sf::Event> & event);
 
     bool connected() const;
     sf::Vector2f direction() const;
     float power() const;
     bool hitPressed() const;
+
 
 private:
     unsigned int index_;
