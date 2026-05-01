@@ -88,7 +88,7 @@ void Ball::hit(Ball& rhs, double dt) {
     Vector dpos = rhs.pos - this->pos; // change in position
     Vector VB = dpos.normalized() *
                 (2 * V0.magnitude() * (V0.normalized().dot(dpos.normalized())))
-                / (rhs.mass / this->mass + 1);
+                / (this->mass / rhs.mass + 1);
     Vector VA = VB * -(this->mass / rhs.mass);
 
     // std::cout << "VA: " << VA.x << ' ' << VA.y << std::endl;

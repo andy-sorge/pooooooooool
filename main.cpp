@@ -1,6 +1,43 @@
 // #include <SFML/Window.hpp>
 #include <iostream>
 #include <string>
+#include <cstdint>
+#include <vector>
+#include <span>
+
+#include "message.hpp"
+#include "server.hpp"
+#include "client.hpp"
+#include "Game.hpp"
+
+#define ADDRESS "127.0.0.1"
+#define PORT 58008
+#define PORT_STRING "58008"
+
+// example of a protocol, has only one message type
+struct TestProtocol {
+	static constexpr std::size_t headerLength = 5;
+
+	enum class MessageType : uint8_t {
+		Test  = 0x01
+	};
+
+	static MessageType type(std::span<const uint8_t, headerLength> header) {
+		return static_cast<MessageType>(header[0]);
+	}
+
+	static uint32_t bodyLength(std::span<const uint8_t, headerLength> header) {
+		return (header[1] << 24) | (header[2] << 16) | (header[3] << 8) | header[4];
+	}
+
+	static void encodeHeader(std::array<uint8_t, 5>& header, MessageType type, uint32_t bodyLength) {
+		header[0] = static_cast<uint8_t>(type);
+		header[1] = bodyLength >> 24;
+		header[2] = bodyLength >> 16;
+		header[3] = bodyLength >> 8;
+		header[4] = bodyLength;
+	}
+};
 
 #include "include/Display.hpp"
 
@@ -10,6 +47,10 @@ T dot_product(T x1, T y1, T x2, T y2) {
 }
 
 int main(int argc, char** argv) {
+    Game game;
+    game.mainloop();
+    return 0;
+
     Role role = HOST;
     TableSegment seg = LEFT;
     unsigned int totalDisplays = 1;
