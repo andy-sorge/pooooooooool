@@ -14,6 +14,7 @@
 #include "../include/Textures.hpp"
 #include "SFML/Graphics.hpp"
 #include "Ball.hpp"
+#include "ControllerInput.hpp"
 #include "PoolNetwork.hpp"
 
 typedef struct rect {
@@ -57,6 +58,7 @@ private:
     
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
+    ControllerInput controller_{};
 
     bool playing_music;
 

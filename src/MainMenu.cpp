@@ -17,7 +17,7 @@ MainMenu::Result MainMenu::run() {
     window.setFramerateLimit(60);
 
     sf::Font font;
-    if (font.openFromFile("Roboto-Regular.ttf")) {
+    if (!font.openFromFile("Roboto-Regular.ttf")) {
         std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
     }
 

@@ -294,6 +294,25 @@ void Display::update() {
             }
         }
 
+        if (role_ == HOST) {
+            controller_.update();
+            if (controller_.hitPressed()) {
+                sf::Vector2f dir = controller_.direction();
+                Vector shotDir{dir.x, dir.y};
+                if (shotDir.magnitude() > 0.05) {
+                    float power = controller_.power();
+                    float speed = 3000.0f * std::max(0.1f, power);
+                    shotDir = shotDir.normalized() * speed;
+                    for (Ball& ball : balls) {
+                        if (ball.number == 0) {
+                            ball.vel = shotDir;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         this->window_.clear(sf::Color::Black);
 
         this->window_.draw(this->tableTop_);
