@@ -3,6 +3,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Joystick.hpp>
+#include <optional>
 
 class ControllerInput {
 public:
