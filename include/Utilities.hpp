@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 #include "Ball.hpp"
 
@@ -22,7 +23,7 @@ enum PlayerTurn {
 
 struct State {
     Role role;
-    std::uint16_t index;
+    std::optional<std::uint16_t> index;
     std::uint16_t displays;
 
     std::vector<Ball> balls;

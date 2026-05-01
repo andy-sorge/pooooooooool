@@ -39,7 +39,8 @@ private:
 
 enum class PacketType : uint8_t {
     Balls,
-    Connection
+    Connection,
+    Cue
 };
 
 inline sf::Packet& operator<<(sf::Packet& packet, const PacketType& type) {

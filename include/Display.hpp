@@ -1,12 +1,6 @@
 #pragma once
 
-#include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/Graphics/Sprite.hpp"
-#include "SFML/System/Vector2.hpp"
-#include <SFML/Graphics/Drawable.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Texture.hpp>
+
 #include <atomic>
 #include <iostream>
 #include <memory>
@@ -14,8 +8,18 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "../include/Textures.hpp"
+#include <optional>
+
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/System/Vector2.hpp"
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include "SFML/Graphics.hpp"
+
+#include "Textures.hpp"
 #include "Ball.hpp"
 #include "ControllerInput.hpp"
 
@@ -59,15 +63,15 @@ private:
     void calculateRenderedSize();
     void calculateRenderedOffset();
     void calculateScale();
-        
+
     // sf::Sprite tableTop_;
     // sf::Sprite tableBorder_;
     sf::Texture cueTexture_;
     sf::Sprite cueSprite_;
-    
+
     // sf::RenderWindow window_;
     void drawBall(Ball& b);
-    
+
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
     ControllerInput controller_{};
@@ -78,7 +82,7 @@ private:
     sf::Sprite top_;
     sf::Sprite border_;
 
-    // void drawBall(Ball& b);  
+    // void drawBall(Ball& b);
 
     void calculateTransform();
     void calculateLogical();

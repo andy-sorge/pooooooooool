@@ -124,10 +124,10 @@ private:
             std::cout << "recieved connection packet!" << std::endl;
             {
                 auto state = state_.lock();
-                std::cout << "old client state... " << state->index << ", " << state->displays << std::endl;
+                //std::cout << "old client state... " << state->index << ", " << state->displays << std::endl;
                 interpret(packet, state->displays);
-                state->index = state->displays - 1;
-                std::cout << state->index << std::endl;
+                if (!state->index.has_value()) state->index.value() = state->displays - 1;
+                //std::cout << state->index << std::endl;
             }
             if (display_.has_value()) display_.value().update();
             else std::cerr << "display not ready!";

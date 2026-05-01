@@ -31,8 +31,9 @@ state_(state), window_(window), border_(sf::Sprite(getTableBorder(TableSegment::
 void Display::update() {
     {
         auto state = state_.lock();
-        if (state->index == 0) segment_ = TableSegment::Left;
-        else if (state->index == state->displays - 1) segment_ = TableSegment::Right;
+
+        if (!state->index.has_value() || state->index.value_or(0) == 0) segment_ = TableSegment::Left;
+        else if (state->index.value() == state->displays - 1) segment_ = TableSegment::Right;
         else segment_ = TableSegment::Center;
     }
     // table border is 205 at top and bottom
@@ -50,7 +51,7 @@ void Display::update() {
     this->border_.setScale({ this->scale_, this->scale_});
     this->top_.setPosition({ static_cast<float>(renderedOffset_.x), static_cast<float>(renderedOffset_.y) });
     this->top_.setScale({ this->scale_, this->scale_});
-    
+
     cueSprite_.setScale({ this->scale_, this->scale_ });
     auto size = cueTexture_.getSize();
     cueSprite_.setOrigin({ static_cast<float>(size.x) / 2.0f, 0 });
@@ -76,9 +77,9 @@ void Display::render() {
 
     this->window_.draw(this->top_);
     this->window_.draw(this->border_);
-    
+
     if (auto state = state_.lock(); state->role == Host) {
-        controller_.update();
+        //controller_.update();
         sf::Vector2f dir = controller_.direction();
         Vector shotDir{-dir.x, -dir.y};
         aimDir_ = dir;
@@ -151,10 +152,10 @@ void Display::calculateLayout() {
     state->logicalSpace = sf::Vector2u({ logicalWidth, 670 });
 
     unsigned int displayOffsetX = 0;
-    if (state->index == 0) displayOffsetX = 0;
-    else if (state->index == state->displays - 1) displayOffsetX = logicalWidth - 1703;
-    else displayOffsetX = 1703 + 1920 * (state->index - 1);
+    if (!state->index.has_value() || state->index.value() == 0) displayOffsetX = 0;
+    else if (state->index.value() == state->displays - 1) displayOffsetX = logicalWidth - 1703;
+    else displayOffsetX = 1703 + 1920 * (state->index.value() - 1);
 
-    float baseOffsetX = (state->index == 0) ? 217.0f : 0.0f;
+    float baseOffsetX = (!state->index.has_value() || state->index.value() == 0) ? 217.0f : 0.0f;
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }
