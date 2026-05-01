@@ -1,6 +1,8 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
+#include <stdexcept>
 #include <thread>
 #include <string>
 #include <queue>
@@ -12,7 +14,7 @@
 #include <SFML/Network/Socket.hpp>
 #include <SFML/Network/SocketSelector.hpp>
 
-#include "Utilities.hpp"
+#include "Networking.hpp"
 
 class Client {
 public:
@@ -34,6 +36,7 @@ public:
     }
 
     void send(const sf::Packet& packet) {
+        std::cout << "got a packet to queue" << std::endl;
         auto outgoing = _outgoing.lock();
         outgoing->push(packet);
     }
@@ -65,16 +68,26 @@ private:
 
         sf::Packet recieved;
         while (_running) {
+            recieved.clear();
             // check for incoming packets
-            if (_client.receive(recieved) != sf::Socket::Status::NotReady) onReceived(recieved);
+            //auto status = _client.receive(recieved);
+            //if (status == sf::Socket::Status::Done) onReceived(recieved);
+            //else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error ) throw std::runtime_error("disconnect or error");
+
+            auto status = sf::Socket::Status::NotReady;
+            do status = _client.receive(recieved);
+            while (status == sf::Socket::Status::Partial);
+            if (status == sf::Socket::Status::Done) onReceived(recieved);
 
             auto outgoing = _outgoing.lock();
             while (!outgoing->empty()) { // sends queued packets to server
-                auto packet = outgoing->front();
-                std::size_t sent = 0;
+                std::cout << "got a packet to send" << std::endl;
+                auto& packet = outgoing->front();
                 while (_client.send(packet) == sf::Socket::Status::Partial); //resend the same packet if the whole thing didn't reach the serber
                 outgoing->pop();
             }
+
+            //sf::sleep(sf::milliseconds(1));
         }
     }
 };

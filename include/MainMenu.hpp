@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Utilities.hpp"
-
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <string>
+
+#include "Utilities.hpp"
 
 class MainMenu {
 public:
@@ -11,7 +12,9 @@ public:
         std::string host;
     };
 
-    MainMenu() = default;
+    MainMenu(sf::RenderWindow& window);
 
     Result run();
+private:
+    sf::RenderWindow& window_;
 };

@@ -1,26 +1,12 @@
 #pragma once
 
 #include <functional>
-#include <iostream>
 
 #include <SFML/Network/Packet.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 
 #include "Server.hpp"
-#include "Utilities.hpp"
-
-static sf::Packet packageBalls(std::vector<BallState>& balls) { // package sent by serber
-    auto packet = sf::Packet();
-    packet << PacketType::GameState << static_cast<uint16_t>(balls.size());
-    for (auto& ball : balls) packet << ball;
-    return packet;
-}
-
-static sf::Packet packageDisplays(std::size_t& displays) { // package sent by server
-    auto packet = sf::Packet();
-    packet << PacketType::Connection << static_cast<uint16_t>(displays);
-    return packet;
-}
+#include "Networking.hpp"
 
 class PoolServer : public Server {
 public:
@@ -35,13 +21,18 @@ public:
     }
 protected:
     virtual void onReceived(sf::Packet& packet) override {
-        PacketType type;
+        std::cout << "recieved packet!" << std::endl;
+
+        uint8_t type;
+        //PacketType type;
         packet >> type;
-        _handler[type](packet);
+        auto handle = _handler.find(static_cast<PacketType>(type));
+        if (handle != _handler.end() && handle->second) handle->second(packet);
+        else std::cerr << "no on received callback for packet type!\n";
     }
 
     virtual void onConnection(sf::TcpSocket& connection) override {
-        _connection();
+        if (_connection) _connection();
     }
 private:
     std::unordered_map<PacketType, std::function<void(sf::Packet& packet)>> _handler;

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cmath>
-#include "SFML/Graphics.hpp"
+
+#include "SFML/System/Vector2.hpp"
 
 typedef double unit_t;
 
@@ -22,4 +23,3 @@ struct Vector {
 
     [[nodiscard]] sf::Vector2f sf() const { return sf::Vector2f(x, y); }
 };
-

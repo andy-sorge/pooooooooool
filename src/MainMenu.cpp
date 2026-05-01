@@ -1,7 +1,10 @@
-#include "MainMenu.hpp"
-
-#include <SFML/Graphics.hpp>
 #include <iostream>
+
+#include "SFML/Graphics/RectangleShape.hpp"
+#include "SFML/Graphics/Font.hpp"
+#include "SFML/Graphics/Text.hpp"
+
+#include "MainMenu.hpp"
 
 void centerText(sf::Text& text, const sf::Vector2f& center) {
     auto bounds = text.getLocalBounds();
@@ -9,16 +12,15 @@ void centerText(sf::Text& text, const sf::Vector2f& center) {
     text.setPosition(center);
 }
 
+MainMenu::MainMenu(sf::RenderWindow& window) : window_(window) {}
+
 MainMenu::Result MainMenu::run() {
     Result result{Role::Host, "127.0.0.1"};
 
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(60);
+    window_.setFramerateLimit(60);
 
     sf::Font font;
-    if (font.openFromFile("Roboto-Regular.ttf")) {
-        std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
-    }
+    if (font.openFromFile("Roboto-Regular.ttf")) std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
 
     sf::Text title(font, "POOOOOOOOOOL", 48);
     title.setFillColor(sf::Color::White);
@@ -57,17 +59,13 @@ MainMenu::Result MainMenu::run() {
     std::string ipInput;
     bool ipActive = false;
 
-    while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-            }
+    while (window_.isOpen()) {
+        while (const auto event = window_.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) window_.close();
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                if (key->code == sf::Keyboard::Key::Escape) {
-                    window.close();
-                }
-                if (key->code == sf::Keyboard::Key::Enter && ipActive) {
+                if (key->code == sf::Keyboard::Key::Escape) window_.close();
+                else if (key->code == sf::Keyboard::Key::Enter && ipActive) {
                     result.role = Role::Client;
                     result.host = ipInput.empty() ? "127.0.0.1" : ipInput;
                     return result;
@@ -114,16 +112,16 @@ MainMenu::Result MainMenu::run() {
         ipText.setFillColor(ipInput.empty() ? sf::Color(140, 140, 140) : sf::Color::White);
         ipText.setPosition({205.0f, 400.0f});
 
-        window.clear(sf::Color(10, 10, 10));
-        window.draw(title);
-        window.draw(hostButton);
-        window.draw(joinButton);
-        window.draw(ipBox);
-        window.draw(hostText);
-        window.draw(joinText);
-        window.draw(ipLabel);
-        window.draw(ipText);
-        window.display();
+        window_.clear(sf::Color(10, 10, 10));
+        window_.draw(title);
+        window_.draw(hostButton);
+        window_.draw(joinButton);
+        window_.draw(ipBox);
+        window_.draw(hostText);
+        window_.draw(joinText);
+        window_.draw(ipLabel);
+        window_.draw(ipText);
+        window_.display();
     }
 
     return result;

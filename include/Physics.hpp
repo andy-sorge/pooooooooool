@@ -1,7 +1,9 @@
-#include "Utilities.hpp"
+#pragma once
 
 #include "SFML/System/Time.hpp"
-#include <SFML/System/Vector2.hpp>
+#include "SFML/System/Vector2.hpp"
+
+#include "Utilities.hpp"
 
 class Physics {
 public:
@@ -52,4 +54,4 @@ private:
     sf::Clock clock_;
     sf::Time dt_ = sf::Time::Zero;
     State& state_;
-}
+};

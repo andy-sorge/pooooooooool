@@ -1,20 +1,15 @@
 #pragma once
 
-#include <array>
-#include <SFML/Graphics/Texture.hpp>
+#include "SFML/Graphics/Texture.hpp"
 
-enum TableSegment {
-    LEFT,
-    CENTER,
-    RIGHT
-};
+enum TableSegment { Left, Center, Right };
 
 void setupTextures();
 
-sf::Texture& resolveTexture(int ballNumber);
+sf::Texture& resolveTexture(std::size_t ball);
 
-sf::Texture& getTableTop(TableSegment seg);
-sf::Texture& getTableBorder(TableSegment seg);
+sf::Texture& getTableTop(TableSegment segment);
+sf::Texture& getTableBorder(TableSegment segment);
 
 sf::Texture& getUiCrown();
 sf::Texture& getUiSolids();

@@ -1,10 +1,12 @@
+#include <random>
+#include <deque>
+#include <iostream>
+#include <array>
+#include <optional>
+
 #include "SFML/Audio/Sound.hpp"
 #include "SFML/Audio/SoundBuffer.hpp"
 #include "SFML/Audio/Music.hpp"
-#include <random>
-#include <vector>
-#include <deque>
-#include <iostream>
 
 sf::Music bum_ba_bum("sfx/music/bum-ba-bum.ogg");
 sf::Music bum_bum_bum_bum_bum("sfx/music/bum-bum-bum-bum-bum.ogg");

@@ -1,21 +1,28 @@
 #pragma once
 
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <vector>
-
-#include <SFML/Graphics/Drawable.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Network.hpp>
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/System/Vector2.hpp"
 
 #include "Ball.hpp"
-#include "PoolServer.hpp"
-#include "PoolClient.hpp"
+#include "Textures.hpp"
+#include "Utilities.hpp"
 
 class Display {
 public:
-    Display(State& state);
+    Display(State& state, sf::RenderWindow& window);
+
     void render();
+
+    void scale(sf::Sprite& sprite) {
+        sprite.setScale({ scale_, scale_ });
+    }
+
+    void setupDisplay();
+
+    void update();
+
+    void scaleBalls();
 private:
     State& state_;
     sf::RenderWindow& window_;
@@ -26,21 +33,20 @@ private:
     sf::Vector2u renderedOffset_;
     sf::Vector2f tableOffset_;
     float scale_;
+    TableSegment segment_;
 
     void calculateRenderedSize();
     void calculateRenderedOffset();
     void calculateScale();
 
-    sf::Sprite tableTop_;
-    sf::Sprite tableBorder_;
+    sf::Sprite top_;
+    sf::Sprite border_;
 
     void drawBall(Ball& b);
 
-    void setupDisplay();
-
     void calculateTransform();
-    void calculateLogical(int totalDisplays);
+    void calculateLogical();
 
-    void recalculateLayout();
+    void calculateLayout();
     bool isPocketed(const Ball& ball) const;
 };

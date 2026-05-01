@@ -15,7 +15,7 @@
 #include <SFML/Network/Socket.hpp>
 #include <SFML/Network/SocketSelector.hpp>
 
-#include "Utilities.hpp"
+#include "Networking.hpp"
 
 class Server {
 public:
@@ -34,10 +34,13 @@ public:
     void stop() {
         _running = false;
         if (_worker.joinable()) _worker.join();
+
+        _listener.close();
         if (_listen.joinable()) _listen.join();
     }
 
     void send(const sf::Packet& packet) {
+        std::cout << "got a packet to queue" << std::endl;
         auto outgoing = _outgoing.lock();
         outgoing->push(packet);
     }
@@ -59,12 +62,17 @@ private:
         sf::Packet recieved;
         while (_running) {
             auto connections = _connections.lock();
-            for (auto& connection : *connections) if (connection->receive(recieved) != sf::Socket::Status::NotReady) onReceived(recieved);
+            for (auto& connection : *connections) {
+                auto status = sf::Socket::Status::NotReady;
+                do status = connection->receive(recieved);
+                while (status == sf::Socket::Status::Partial);
+                if (status == sf::Socket::Status::Done) onReceived(recieved);
+            }
 
             auto outgoing = _outgoing.lock();
             while (!outgoing->empty()) { // send queued packets to all clients
+                std::cout << "got a packet to send" << std::endl;
                 auto packet = outgoing->front();
-                std::size_t sent = 0;
                 for (auto& connection : *connections) while (connection->send(packet) == sf::Socket::Status::Partial); //resend the same packet if the whole thing didn't reach the serber
                 outgoing->pop();
             }

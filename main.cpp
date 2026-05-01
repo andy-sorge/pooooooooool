@@ -2,22 +2,19 @@
 #include <iostream>
 #include <string>
 
-
 #include "Game.hpp"
 
 #define ADDRESS "127.0.0.1"
 #define PORT 58008
 #define PORT_STRING "58008"
 
-#include "Display.hpp"
-#include "MainMenu.hpp"
-
 int main(int argc, char** argv) {
     Game game;
-    game.mainloop();
+    game.run();
+
     return 0;
 
-    Role role = HOST;
+    /*Role role = HOST;
     TableSegment seg = LEFT;
     unsigned int totalDisplays = 1;
     unsigned int displayIndex = 0;
@@ -67,5 +64,5 @@ int main(int argc, char** argv) {
 
     unsigned int displayCountForRole = (role == HOST) ? 1 : totalDisplays;
     Display d(seg, role, displayCountForRole, displayIndex, hostAddress);
-    d.update();
+    d.update();*/
 }

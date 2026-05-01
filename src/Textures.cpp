@@ -1,5 +1,9 @@
+#include <array>
+#include <cstdlib>
+
+#include "SFML/Graphics/Texture.hpp"
+
 #include "Textures.hpp"
-#include <SFML/Graphics/Texture.hpp>
 
 // UI
 sf::Texture uiCrown("graphics/other/crown.png");
@@ -47,27 +51,22 @@ void setupTextures() {
     uiStripes.setSmooth(true);
     cue.setSmooth(true);
     ballTriangle.setSmooth(true);
-    for (sf::Texture& t : ballTextures) {
-        t.setSmooth(true);
-    }
-    for (sf::Texture& t : tableTops) {
-        t.setSmooth(true);
-    }
-    for (sf::Texture& t : tableBorders) {
-        t.setSmooth(true);
-    }
+
+    for (sf::Texture& texture : ballTextures) texture.setSmooth(true);
+    for (sf::Texture& texture : tableTops) texture.setSmooth(true);
+    for (sf::Texture& texture : tableBorders) texture.setSmooth(true);
 }
 
-sf::Texture& resolveTexture(int ballNumber) {
-    return ballTextures.at(ballNumber);
+sf::Texture& resolveTexture(std::size_t ball) {
+    return ballTextures[ball];
 }
 
-sf::Texture& getTableTop(TableSegment seg) {
-    return tableTops[seg];
+sf::Texture& getTableTop(TableSegment segment) {
+    return tableTops[segment];
 }
 
-sf::Texture& getTableBorder(TableSegment seg) {
-    return tableBorders[seg];
+sf::Texture& getTableBorder(TableSegment segment) {
+    return tableBorders[segment];
 }
 
 sf::Texture& getUiCrown() {
