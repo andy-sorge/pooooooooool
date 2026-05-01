@@ -2,6 +2,7 @@
 
 #include "SFML/Network/Packet.hpp"
 #include <mutex>
+#include <iostream>
 
 #include "Ball.hpp"
 #include "Vector.hpp"
@@ -50,11 +51,14 @@ inline sf::Packet& operator>>(sf::Packet& packet, PacketType& type) {
 }
 
 inline sf::Packet& operator<<(sf::Packet& packet, const Ball& ball) {
-    return packet << static_cast<uint16_t>(ball.number) << ball.pos.x << ball.pos.y << ball.vel.x << ball.vel.y;
+    return packet << static_cast<uint8_t>(ball.number) << ball.pos.x << ball.pos.y << ball.vel.x << ball.vel.y;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, Ball& ball) {
-    return packet >> ball.number >> ball.pos.x >> ball.pos.y >> ball.vel.x >> ball.vel.y;
+    uint8_t number = 0;
+    packet >> number >> ball.pos.x >> ball.pos.y >> ball.vel.x >> ball.vel.y;
+    ball.number = static_cast<int8_t>(number);
+    return packet;
 }
 
 [[nodiscard]] inline sf::Packet package(std::vector<Ball>& balls) { // package sent by serber
@@ -78,8 +82,20 @@ inline void interpret(sf::Packet& packet, std::vector<Ball>& balls) { // message
     std::uint16_t size;
     packet >> size;
 
-    if (balls.size() != size) balls.reserve(size);
-    for (std::size_t i = 0; i < size; ++i) packet >> balls[i];
+    std::vector<Ball> incoming;
+    incoming.reserve(size);
+
+    for (std::size_t i = 0; i < size; ++i) {
+        uint8_t number = 0;
+        unit_t px = 0.0;
+        unit_t py = 0.0;
+        unit_t vx = 0.0;
+        unit_t vy = 0.0;
+        packet >> number >> px >> py >> vx >> vy;
+        incoming.emplace_back(Vector{px, py}, Vector{vx, vy}, number);
+    }
+
+    balls = std::move(incoming);
 }
 
 inline void interpret(sf::Packet& packet, std::uint16_t& displays) { // message sent to client
