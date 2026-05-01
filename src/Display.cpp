@@ -1,8 +1,5 @@
-#include "../include/Vector.hpp"
 #include <algorithm>
 #include <chrono>
-#include <memory>
-#include <optional>
 #include <stdexcept>
 
 #include <SFML/Network/IpAddress.hpp>
@@ -16,13 +13,10 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "Physics.hpp"
+#include "Vector.hpp"
 #include "Display.hpp"
 #include "Audio.hpp"
-#include "PoolClient.hpp"
-#include "PoolServer.hpp"
-#include "Utilities.hpp"
-
+#include "../include/Vector.hpp"
 namespace {
     constexpr float kPocketRadius = 100.0f;
     constexpr float kPort = 58008;

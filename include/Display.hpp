@@ -29,15 +29,12 @@ enum Role {
 
 class Display {
 public:
-    Display(TableSegment& seg, Role& role, unsigned int displays, unsigned int index, std::string& hostAddress);
+    Display();
 
     void update();
 private:
     Role role_;
     TableSegment seg_;
-
-    std::size_t displays_;
-    std::size_t index_;
 
     // display positioning and scale:w
     sf::Vector2u physicalSize_;
@@ -60,20 +57,12 @@ private:
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
 
-    bool playing_music;
-
     void setupDisplay();
 
     void calculateTransform();
     void calculateLogical(int totalDisplays);
 
-    void setupNetworking(const std::string& hostAddress);
-    void broadcastState();
-    void applyNetworkState(const std::vector<BallState>& state);
     void recalculateLayout();
     std::vector<Vector> pocketCenters() const;
     bool isPocketed(const Ball& ball) const;
-
-    std::unique_ptr<PoolServer> server_ = nullptr;
-    std::unique_ptr<PoolClient> client_ = nullptr;
 };
