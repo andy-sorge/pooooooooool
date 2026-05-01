@@ -29,7 +29,7 @@ enum Role {
 
 class Display {
 public:
-    Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress = "127.0.0.1");
+    Display(TableSegment& seg, Role& role, unsigned int displays, unsigned int index, std::string& hostAddress);
 
     void update();
 private:
@@ -39,7 +39,7 @@ private:
     std::size_t displays_;
     std::size_t index_;
 
-    // display positioning and scale
+    // display positioning and scale:w
     sf::Vector2u physicalSize_;
     sf::Vector2u renderedSize_;
     sf::Vector2u renderedOffset_;

@@ -27,7 +27,7 @@ namespace {
     constexpr float kPort = 58008;
 }
 
-Display::Display(TableSegment seg, Role role, unsigned int displays, unsigned int index, std::string hostAddress):
+Display::Display(TableSegment& seg, Role& role, unsigned int displays, unsigned int index, std::string& hostAddress):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
 logicalSize_({ 1703, 670 }),
 displays_(displays),
@@ -159,11 +159,12 @@ void Display::drawBall(Ball& b) {
 void Display::setupNetworking(const std::string& hostAddress) {
     if (role_ == HOST) {
         std::cout << "i am a server!" << std::endl;
-        server_ = std::make_unique<PoolServer>();
-        server_->start(kPort);
+        server_ = std::make_unique<PoolServer>(kPort);
+        server_->start();
 
         server_->registerConnection([this]() {
             server_->send(packageDisplays(++displays_));
+            //recalculateLayout();
         });
     } else {
         std::cout << "i am a client!" << std::endl;
@@ -177,6 +178,9 @@ void Display::setupNetworking(const std::string& hostAddress) {
         });
         client_->registerHandle(PacketType::Connection, [this](sf::Packet& packet) {
             interpretDisplays(packet, displays_);
+            index_ = displays_;
+            std::cout << displays_;
+            recalculateLayout();
         });
 
         auto now = std::chrono::steady_clock::now();

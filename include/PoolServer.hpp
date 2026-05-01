@@ -24,6 +24,8 @@ static sf::Packet packageDisplays(std::size_t& displays) { // package sent by se
 
 class PoolServer : public Server {
 public:
+    PoolServer(std::uint16_t port) : Server(port) {}
+
     void registerHandle(PacketType type, std::function<void(sf::Packet& packet)> handle) {
         _handler[type] = std::move(handle);
     }

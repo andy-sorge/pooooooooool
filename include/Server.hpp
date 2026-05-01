@@ -19,20 +19,22 @@
 
 class Server {
 public:
-    Server() = default;
+    Server(std::uint16_t port) : _port(port) {}
 
     ~Server() {
         stop();
     }
 
-    void start(unsigned short port) {
+    void start() {
         _running = true;
-        _worker = std::thread{&Server::execute, this, port};
+        _worker = std::thread{&Server::execute, this};
+        _listen = std::thread{&Server::listen, this};
     }
 
     void stop() {
         _running = false;
         if (_worker.joinable()) _worker.join();
+        if (_listen.joinable()) _listen.join();
     }
 
     void send(const sf::Packet& packet) {
@@ -44,39 +46,18 @@ protected:
     virtual void onConnection(sf::TcpSocket& connection) = 0;
 private:
     sf::TcpListener _listener;
+    std::thread _listen;
     std::thread _worker;
 
     std::atomic_bool _running = false;
+    std::atomic_uint16_t _port;
 
     Synchronized<std::vector<std::unique_ptr<sf::TcpSocket>>> _connections;
     Synchronized<std::queue<sf::Packet>> _outgoing;
 
-    void execute(unsigned short port) {
-        _listener.setBlocking(true);
-
+    void execute() {
         sf::Packet recieved;
         while (_running) {
-            //std::cout << static_cast<int>(_listener.listen(port)) << std::endl;
-            auto listenStatus = _listener.listen(port);
-            if (listenStatus != sf::Socket::Status::Done) throw std::runtime_error("fml");
-            if (listenStatus == sf::Socket::Status::Done) { // connects clients
-                sf::TcpSocket connection;
-                auto acceptStatus = _listener.accept(connection);
-                if (acceptStatus != sf::Socket::Status::NotReady) throw std::runtime_error("help me");
-                // std::unique_ptr<sf::TcpSocket> connection;
-                // if (connection == nullptr) std::cout << "nullptr!" << std::endl;
-                // auto status = _listener.accept(*connection);
-                // std::cout << static_cast<int>(status);
-                // if (status == sf::Socket::Status::Done) {
-                //     if (!connection) throw std::runtime_error("big bad error, nullptr");
-                //     connection->setBlocking(false);
-                //     if (connection->getRemoteAddress().has_value()) std::cout << "i have remote address!";
-                //     onConnection(*connection);
-                //     auto connections = _connections.lock();
-                //     connections->emplace_back(std::move(connection));
-                // }
-            }
-
             auto connections = _connections.lock();
             for (auto& connection : *connections) if (connection->receive(recieved) != sf::Socket::Status::NotReady) onReceived(recieved);
 
@@ -86,6 +67,24 @@ private:
                 std::size_t sent = 0;
                 for (auto& connection : *connections) while (connection->send(packet) == sf::Socket::Status::Partial); //resend the same packet if the whole thing didn't reach the serber
                 outgoing->pop();
+            }
+        }
+    }
+
+    void listen() {
+        _listener.setBlocking(true);
+
+        while (_running) {
+            if (_listener.listen(_port) == sf::Socket::Status::Done) { // connects clients
+                auto connection = std::make_unique<sf::TcpSocket>();
+                if (_listener.accept(*connection) == sf::Socket::Status::Done) {
+                    if (!connection) throw std::runtime_error("big bad error, nullptr");
+                    connection->setBlocking(false);
+                    onConnection(*connection);
+                    auto connections = _connections.lock();
+                    connections->emplace_back(std::move(connection));
+                    _port++;
+                }
             }
         }
     }
