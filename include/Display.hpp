@@ -1,5 +1,8 @@
 #pragma once
 
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/System/Vector2.hpp"
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -23,30 +26,38 @@ typedef struct rect {
     int y;
 } Rect;
 
-enum Role {
-    HOST,
-    CLIENT
-};
+#include "Ball.hpp"
+#include "Textures.hpp"
+#include "Utilities.hpp"
+#include "Networking.hpp"
 
 class Display {
 public:
-    Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress = "127.0.0.1");
-    ~Display();
+    Display(Synchronized<State>& state, sf::RenderWindow& window);
+
+    void render();
+
+    void scale(sf::Sprite& sprite) {
+        sprite.setScale({ scale_, scale_ });
+    }
+
+    void setupDisplay();
 
     void update();
-    
+
+    void scaleBalls(std::vector<Ball>& balls);
 private:
-    Role role_;
-    TableSegment seg_;
-    
+    Synchronized<State>& state_;
+    sf::RenderWindow& window_;
+
     // display positioning and scale
     sf::Vector2u physicalSize_;
     sf::Vector2u renderedSize_;
     sf::Vector2u renderedOffset_;
     sf::Vector2f tableOffset_;
-    sf::Vector2u logicalSize_;
     float scale_;
-    
+    TableSegment segment_;
+
     void calculateRenderedSize();
     void calculateRenderedOffset();
     void calculateScale();
@@ -66,29 +77,14 @@ private:
     float aimPower_{0.0f};
     bool aiming_{false};
 
-    bool playing_music;
+    sf::Sprite top_;
+    sf::Sprite border_;
 
-    void setupDisplay();
-    
+    void drawBall(Ball& b);
+
     void calculateTransform();
-    void calculateLogical(int totalDisplays);
+    void calculateLogical();
 
-    void setupNetworking(const std::string& hostAddress);
-    void broadcastState();
-    void applyNetworkState(const std::vector<PoolBallState>& state);
-    void recalculateLayout();
-    std::vector<Vector> pocketCenters() const;
+    void calculateLayout();
     bool isPocketed(const Ball& ball) const;
-
-    std::unique_ptr<asio::io_context> io_;
-    std::unique_ptr<PoolServer> server_;
-    std::unique_ptr<PoolClient> client_;
-    std::unique_ptr<asio::steady_timer> joinTimer_;
-    std::thread networkThread_;
-    std::mutex ballsMutex_;
-    std::atomic<unsigned int> totalDisplays_{1};
-    unsigned int displayIndex_{0};
-    std::atomic<bool> logicalDirty_{false};
-    std::atomic<bool> hasNetworkState_{false};
-    std::atomic<bool> shouldQuit_{false};
 };

@@ -1,17 +1,16 @@
-#include "../include/Ball.hpp"
-#include "../include/Audio.hpp"
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <iostream>
-#include <memory>
-#include <string>
+#include <vector>
 
-#include "../include/Audio.hpp"
-Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
-    sf::Sprite(resolveTexture(ball_number))
-{
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/System/Clock.hpp"
+#include "SFML/System/Time.hpp"
+
+#include "Ball.hpp"
+#include "Audio.hpp"
+#include "Textures.hpp"
+
+Ball::Ball(Vector position, Vector velocity, uint8_t number) : sf::Sprite(resolveTexture(number)) {
     this->setOrigin({ 96, 96 }); // center the balls position
-    number = ball_number;  // assign FIRST
+    this->number = number;  // assign FIRST
 
     // std::string fname("graphics/balls/");
     // fname += std::to_string(number);  // now safe
@@ -21,16 +20,16 @@ Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
     // this->setTexture(this->tex_);  // keeps tex_ alive (it's a member)
     ball_hit_sound_cooldown.start();
 
-    this->setScale({ scale, scale });
+    this->setScale({BALL_SCALE, BALL_SCALE});
     pos = position;
     vel = velocity;
     radius = BALL_RADIUS;
     mass = 1;
 
-    if      (number == 0)                 { type = BallType::Cue;    }
-    else if (number >= 1 && number <= 7)  { type = BallType::Solid;  }  // also fixed: was >= 0
-    else if (number == 8)                 { type = BallType::Eight;  }
-    else if (number >= 9 && number <= 15) { type = BallType::Stripe; }
+    if      (this->number == 0)                       { type = Ball::Type::Cue;    }
+    else if (this->number >= 1 && number <= 7)        { type = Ball::Type::Solid;  }  // also fixed: was >= 0
+    else if (this->number == 8)                       { type = Ball::Type::Eight;  }
+    else if (this->number >= 9 && this->number <= 15) { type = Ball::Type::Stripe; }
 
     this->setPosition(pos.sf());
 }
@@ -88,7 +87,7 @@ void Ball::hit(Ball& rhs, double dt) {
     Vector dpos = rhs.pos - this->pos; // change in position
     Vector VB = dpos.normalized() *
                 (2 * V0.magnitude() * (V0.normalized().dot(dpos.normalized())))
-                / (rhs.mass / this->mass + 1);
+                / (this->mass / rhs.mass + 1);
     Vector VA = VB * -(this->mass / rhs.mass);
 
     // std::cout << "VA: " << VA.x << ' ' << VA.y << std::endl;
@@ -134,29 +133,31 @@ Ball::~Ball() = default;
 //     this->setPosition({pos.x - this->getLocalBounds().size.x / 2, pos.y - this->getLocalBounds().size.y / 2});
 // }
 
-void create_arranged_balls(std::vector<Ball>& balls, float scale) {
+void create_arranged_balls(std::vector<Ball>& balls) {
     // the *spec* is to have the eight ball in a particular position, and for
     // the back corners to each be one of solids and one of stripes
     // then the rest of the balls random
     // obv they're hardcoded rn but we can change that
     double space = 1.05;
-    balls.emplace_back(Vector{500,335.0}, Vector{0.0,0.0}, 1, scale);
+    balls.clear();
 
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*2*space,335 - BALL_RADIUS*space}, Vector{0.0,0.0}, 2, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*2*space,335 + BALL_RADIUS*space}, Vector{0.0,0.0}, 11, scale);
+    balls.emplace_back(Vector{500,335.0}, Vector{0.0,0.0}, 1);
 
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335 - BALL_RADIUS*2*space}, Vector{0.0,0.0}, 4, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335}, Vector{0.0,0.0}, 8, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335 + BALL_RADIUS*2*space}, Vector{0.0,0.0}, 6, scale);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*2*space,335 - BALL_RADIUS*space}, Vector{0.0,0.0}, 2);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*2*space,335 + BALL_RADIUS*space}, Vector{0.0,0.0}, 11);
 
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 - BALL_RADIUS*3*space}, Vector{0.0,0.0}, 7, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 - BALL_RADIUS*1*space}, Vector{0.0,0.0}, 5, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 + BALL_RADIUS*1*space}, Vector{0.0,0.0}, 9, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 + BALL_RADIUS*3*space}, Vector{0.0,0.0}, 10, scale);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335 - BALL_RADIUS*2*space}, Vector{0.0,0.0}, 4);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335}, Vector{0.0,0.0}, 8);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*4*space,335 + BALL_RADIUS*2*space}, Vector{0.0,0.0}, 6);
 
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 + BALL_RADIUS*4*space}, Vector{0.0,0.0}, 3, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 - BALL_RADIUS*2*space}, Vector{0.0,0.0}, 12, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335}, Vector{0.0,0.0}, 13, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 + BALL_RADIUS*2*space}, Vector{0.0,0.0}, 14, scale);
-    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 - BALL_RADIUS*4*space}, Vector{0.0,0.0}, 15, scale);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 - BALL_RADIUS*3*space}, Vector{0.0,0.0}, 7);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 - BALL_RADIUS*1*space}, Vector{0.0,0.0}, 5);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 + BALL_RADIUS*1*space}, Vector{0.0,0.0}, 9);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*6*space,335 + BALL_RADIUS*3*space}, Vector{0.0,0.0}, 10);
+
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 + BALL_RADIUS*4*space}, Vector{0.0,0.0}, 3);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 - BALL_RADIUS*2*space}, Vector{0.0,0.0}, 12);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335}, Vector{0.0,0.0}, 13);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 + BALL_RADIUS*2*space}, Vector{0.0,0.0}, 14);
+    balls.emplace_back(Vector{500 + BALL_RADIUS*0.866*8*space,335 - BALL_RADIUS*4*space}, Vector{0.0,0.0}, 15);
 }

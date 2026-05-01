@@ -4,6 +4,11 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
+#include "SFML/Graphics/RectangleShape.hpp"
+#include "SFML/Graphics/Font.hpp"
+#include "SFML/Graphics/Text.hpp"
+
+#include "MainMenu.hpp"
 
 void centerText(sf::Text& text, const sf::Vector2f& center) {
     auto bounds = text.getLocalBounds();
@@ -11,16 +16,15 @@ void centerText(sf::Text& text, const sf::Vector2f& center) {
     text.setPosition(center);
 }
 
-MainMenu::Result MainMenu::run() {
-    Result result{HOST, "127.0.0.1"};
+MainMenu::MainMenu(sf::RenderWindow& window) : window_(window) {}
 
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(60);
+MainMenu::Result MainMenu::run() {
+    Result result{Role::Host, "127.0.0.1"};
+
+    window_.setFramerateLimit(60);
 
     sf::Font font;
-    if (!font.openFromFile("Roboto-Regular.ttf")) {
-        std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
-    }
+    if (font.openFromFile("Roboto-Regular.ttf")) std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
 
     sf::Sprite crown(getUiCrown());
     crown.setScale({0.4, 0.4});
@@ -63,19 +67,15 @@ MainMenu::Result MainMenu::run() {
     std::string ipInput;
     bool ipActive = false;
 
-    while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-            }
+    while (window_.isOpen()) {
+        while (const auto event = window_.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) window_.close();
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                if (key->code == sf::Keyboard::Key::Escape) {
-                    window.close();
-                }
-                if (key->code == sf::Keyboard::Key::Enter && ipActive) {
-                    result.role = CLIENT;
-                    result.hostAddress = ipInput.empty() ? "127.0.0.1" : ipInput;
+                if (key->code == sf::Keyboard::Key::Escape) window_.close();
+                else if (key->code == sf::Keyboard::Key::Enter && ipActive) {
+                    result.role = Role::Client;
+                    result.host = ipInput.empty() ? "127.0.0.1" : ipInput;
                     return result;
                 }
             }
@@ -96,13 +96,13 @@ MainMenu::Result MainMenu::run() {
                 if (mouse->button == sf::Mouse::Button::Left) {
                     sf::Vector2f pos(static_cast<float>(mouse->position.x), static_cast<float>(mouse->position.y));
                     if (hostButton.getGlobalBounds().contains(pos)) {
-                        result.role = HOST;
-                        result.hostAddress = "127.0.0.1";
+                        result.role = Role::Host;
+                        result.host = "127.0.0.1";
                         return result;
                     }
                     if (joinButton.getGlobalBounds().contains(pos)) {
-                        result.role = CLIENT;
-                        result.hostAddress = ipInput.empty() ? "127.0.0.1" : ipInput;
+                        result.role = Role::Client;
+                        result.host = ipInput.empty() ? "127.0.0.1" : ipInput;
                         return result;
                     }
                     if (ipBox.getGlobalBounds().contains(pos)) {

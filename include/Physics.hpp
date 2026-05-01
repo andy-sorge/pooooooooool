@@ -1,25 +1,61 @@
 #pragma once
 
-#include <cmath>
-#include "SFML/Graphics.hpp"
+#include "Networking.hpp"
+#include "SFML/System/Time.hpp"
+#include "SFML/System/Vector2.hpp"
 
-typedef double unit_t;
+#include "Utilities.hpp"
+#include "Networking.hpp"
 
-struct Vector {
-    unit_t x;
-    unit_t y;
-    unit_t dot(const Vector& rhs) const { return x*rhs.x + y*rhs.y; }
-    [[nodiscard]] unit_t magnitude() const { return std::sqrt(x*x + y*y);  }
-    [[nodiscard]] Vector normalized() const { return (*this) / this->magnitude(); }
+class Physics {
+public:
+    Physics(Synchronized<State>& state) : state_(state) {}
 
-    Vector operator*(unit_t rhs) const { return Vector { .x = x * rhs, .y = y * rhs }; }
-    Vector operator/(unit_t rhs) const { return Vector { .x = x / rhs, .y = y / rhs }; }
-    Vector operator+(const Vector& rhs) const { return Vector { .x = x + rhs.x, .y = y + rhs.y }; }
-    Vector operator-(const Vector& rhs) const { return Vector { .x = x - rhs.x, .y = y - rhs.y }; }
-    Vector operator-() const { return Vector { .x = -x , .y = -y }; }
-    Vector& operator+=(const Vector& rhs) { return *this = *this + rhs; }
-    Vector& operator-=(const Vector& rhs) { return *this = *this - rhs; }
+    void step() {
+        dt_ += clock_.reset();
+        clock_.start();
 
-    [[nodiscard]] sf::Vector2f sf() const { return sf::Vector2f(x, y); }
+        sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
+
+        if (dt_ > between_frames) {
+            dt_ -= between_frames;
+
+            auto state = state_.lock();
+
+            for (Ball& ball: state->balls) ball.tick_physics(between_frames.asSeconds());
+
+            for (int i = 0; i < state->balls.size(); ++i) {
+                Ball& ball1 = state->balls[i];
+                if (ball1.pos.y < ball1.radius) {
+                    ball1.pos.y = ball1.radius;
+                    ball1.vel.y = -ball1.vel.y - ball1.friction().magnitude();
+                }
+
+                if (ball1.pos.y > state->logicalSpace.y - ball1.radius) {
+                    ball1.pos.y = state->logicalSpace.y - ball1.radius;
+                    ball1.vel.y = -ball1.vel.y + ball1.friction().magnitude();
+                }
+
+                if (ball1.pos.x < ball1.radius) {
+                    ball1.pos.x = ball1.radius;
+                    ball1.vel.x = -ball1.vel.x - ball1.friction().magnitude();
+                }
+
+                if (ball1.pos.x > state->logicalSpace.x - ball1.radius) {
+                    ball1.pos.x = state->logicalSpace.x - ball1.radius;
+                    ball1.vel.x = -ball1.vel.x + ball1.friction().magnitude();
+                }
+
+                for (int j = i+1; j < state->balls.size(); ++j) {
+                    Ball& ball2 = state->balls[j];
+
+                    if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) ball1.hit(ball2, between_frames.asSeconds());
+                }
+            }
+        }
+    }
+private:
+    sf::Clock clock_;
+    sf::Time dt_ = sf::Time::Zero;
+    Synchronized<State>& state_;
 };
-

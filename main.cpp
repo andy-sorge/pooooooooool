@@ -2,16 +2,19 @@
 #include <iostream>
 #include <string>
 
-#include "include/Display.hpp"
-#include "include/MainMenu.hpp"
+#include "Game.hpp"
 
-template <class T>
-T dot_product(T x1, T y1, T x2, T y2) {
-    return x1*x2 + y1*y2;
-}
+#define ADDRESS "127.0.0.1"
+#define PORT 58008
+#define PORT_STRING "58008"
 
 int main(int argc, char** argv) {
-    Role role = HOST;
+    Game game;
+    game.run();
+
+    return 0;
+
+    /*Role role = HOST;
     TableSegment seg = LEFT;
     unsigned int totalDisplays = 1;
     unsigned int displayIndex = 0;
@@ -43,6 +46,8 @@ int main(int argc, char** argv) {
         }
     }
 
+    Game game;
+
     if (useMenu) {
         MainMenu menu;
         auto result = menu.run();
@@ -59,5 +64,5 @@ int main(int argc, char** argv) {
 
     unsigned int displayCountForRole = (role == HOST) ? 1 : totalDisplays;
     Display d(seg, role, displayCountForRole, displayIndex, hostAddress);
-    d.update();
+    d.update();*/
 }

@@ -1,14 +1,20 @@
 #pragma once
 
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <string>
-#include "Display.hpp"
+
+#include "Utilities.hpp"
 
 class MainMenu {
 public:
     struct Result {
         Role role;
-        std::string hostAddress;
+        std::string host;
     };
 
+    MainMenu(sf::RenderWindow& window);
+
     Result run();
+private:
+    sf::RenderWindow& window_;
 };
