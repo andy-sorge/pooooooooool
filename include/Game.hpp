@@ -43,6 +43,7 @@ public:
             host();
 
             auto state = state_.lock();
+            state->index.value() = 0;
             create_arranged_balls(state->balls);
             display.scaleBalls(state->balls);
         } else client(result.host);

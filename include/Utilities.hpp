@@ -30,5 +30,5 @@ struct State {
     std::vector<Vector> pockets;
     sf::Vector2u logicalSpace;
 
-    State() : role(Role::Host), displays(1), index(0) {}
+    State() : role(Role::Host), displays(1), index() {}
 };
