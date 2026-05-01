@@ -233,6 +233,12 @@ void Display::broadcastState() {
     server_->broadcast(makeStateMessage(state, playing_music));
 }
 
+Vector Display::mouseScaled() {
+    sf::Vector2i mouse = sf::Mouse::getPosition();
+    return Vector(mouse.x/this->scale_ - this->tableOffset_.x - this->renderedOffset_.x,
+                  mouse.y/this->scale_ - this->tableOffset_.y - this->renderedOffset_.y);
+}
+
 void Display::update() {
     sf::Clock clock;
     sf::Time dt = sf::Time::Zero;
@@ -288,29 +294,76 @@ void Display::update() {
             controller_.update(event);
 
             // clicking to spawn a ball
-            if (role_ == HOST) {
-                if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
-                   if (button->button == sf::Mouse::Button::Left) {
-                       sf::Vector2i mouse = sf::Mouse::getPosition();
-                       holding_ball = balls.size();
-                       balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0, this->scale_);
-                   }
-                }
-                if (auto* button = event->getIf<sf::Event::MouseButtonReleased>()) {
-                    if (button->button == sf::Mouse::Button::Left) {
-                        sf::Vector2i mouse = sf::Mouse::getPosition();
-                        Vector mouse_pos = Vector(mouse.x, mouse.y);
-                        balls[holding_ball].vel += (balls[holding_ball].pos - mouse_pos) * 10;
+            if (role_ == HOST && cueNeedsPlacing && !useController) {
+                Ball* cueBall = nullptr;
+                bool foundCue = false;
+                for (Ball& ball : balls) {
+                    if (ball.type == BallType::Cue) {
+                        cueBall = &ball;
+                        foundCue = true;
+                        break;
                     }
                 }
+                if (foundCue) {
+                    cueBall->pos = mouseScaled();
+                }
+                else {
+                    balls.emplace_back(mouseScaled(), Vector{0, 0}, 0, this->scale_);
+                }
+                if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
+                   if (button->button == sf::Mouse::Button::Left) {
+                       // holding_ball = balls.size();
+                       // Vector pos = mouseScaled();
+                       // balls.emplace_back(pos, Vector{0, 0}, 0, this->scale_);
+                       cueNeedsPlacing = false;
+                   }
+                }
+                // if (auto* button = event->getIf<sf::Event::MouseButtonReleased>()) {
+                //     if (button->button == sf::Mouse::Button::Left) {
+                //        Vector pos = mouseScaled();
+                //         balls[holding_ball].vel += (balls[holding_ball].pos - pos) * 10;
+                //     }
+                // }
             }
         }
 
-        if (role_ == HOST) {
+        if (role_ == HOST && cueNeedsPlacing && useController) {
+            Ball* cueBall = nullptr;
+            bool foundCue = false;
+            for (Ball& ball : balls) {
+                if (ball.type == BallType::Cue) {
+                    cueBall = &ball;
+                    foundCue = true;
+                    break;
+                }
+            }
+            if (foundCue) {
+                cueBall->pos += Vector(controller_.direction().x, controller_.direction().y) / 2;
+            }
+            else {
+                balls.emplace_back(Vector(tableOffset_.x + 50, this->logicalSize_.y/2), Vector{0, 0}, 0, this->scale_);
+            }
+
+            if (controller_.hitPressed()) {
+                cueNeedsPlacing = false;
+            }
+        }
+
+        if (role_ == HOST && !cueNeedsPlacing) {
+            Ball* cueBall = nullptr;
+            bool foundCue = false;
+            for (Ball& ball : balls) {
+                if (ball.type == BallType::Cue) {
+                    cueBall = &ball;
+                    foundCue = true;
+                    break;
+                }
+            }
             sf::Vector2f dir = controller_.direction();
             Vector shotDir{-dir.x, -dir.y};
             aimDir_ = dir;
             aimPower_ = std::clamp(controller_.power(), 0.0f, 1.0f);
+
             aiming_ = shotDir.magnitude() > 0.05f;
 
             if (controller_.hitPressed()) {
@@ -334,15 +387,17 @@ void Display::update() {
 
         if (role_ == HOST && aiming_ && cueTexture_.getSize().x > 0) {
             Vector cuePos;
+            Ball* cueBall = nullptr;
             bool foundCue = false;
-            for (const Ball& ball : balls) {
+            for (Ball& ball : balls) {
                 if (ball.number == 0) {
                     cuePos = ball.pos;
+                    cueBall = &ball;
                     foundCue = true;
                     break;
                 }
             }
-            if (foundCue) {
+            if (foundCue && cueBall->vel.x == 0 && cueBall->vel.y != 0) {
                 Vector aimVec{aimDir_.x, aimDir_.y};
                 if (aimVec.magnitude() > 0.05f) {
                     float angle = (std::atan2(aimVec.y, aimVec.x) * 180.0f / 3.14159265f) - 90.0f;
@@ -412,6 +467,7 @@ void Display::update() {
                     }
 
                     balls.erase(std::remove_if(balls.begin(), balls.end(), [this](const Ball& ball) {
+                        // if (ball.type == BallType::Cue) this->cueNeedsPlacing = true;
                         return isPocketed(ball);
                     }), balls.end());
 

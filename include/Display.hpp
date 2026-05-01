@@ -50,6 +50,7 @@ private:
     void calculateRenderedSize();
     void calculateRenderedOffset();
     void calculateScale();
+    Vector mouseScaled();
         
     sf::Sprite tableTop_;
     sf::Sprite tableBorder_;
@@ -66,7 +67,10 @@ private:
     float aimPower_{0.0f};
     bool aiming_{false};
 
-    bool playing_music;
+    bool playing_music = false;
+
+    bool cueNeedsPlacing = true; // new
+    bool useController = true;
 
     void setupDisplay();
     
