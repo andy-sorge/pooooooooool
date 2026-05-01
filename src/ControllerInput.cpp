@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 
 constexpr float deadband = 5.0f;
@@ -23,25 +24,47 @@ float applyDeadzone(float raw) {
 ControllerInput::ControllerInput(unsigned int joystickIndex)
     : index_(joystickIndex) {}
 
-void ControllerInput::update() {
+void ControllerInput::update(const std::optional<sf::Event>& event) {
     if (!connected()) {
         direction_ = {0.0f, 0.0f};
         power_ = 0.0f;
         hitPressed_ = false;
         prevHit_ = false;
+        std::cout << "not connected" << std::endl;
         return;
     }
-
-    float x = hasAxis(sf::Joystick::Axis::X) ? readAxis(sf::Joystick::Axis::X) : 0.0f;
-    float y = hasAxis(sf::Joystick::Axis::Y) ? readAxis(sf::Joystick::Axis::Y) : 0.0f;
-    direction_ = { applyDeadzone(x), applyDeadzone(y) };
+    if (event->is<sf::Event::JoystickConnected>()) {
+        std::cout << "just connected!" << std::endl;
+    }
+    if (event->is<sf::Event::JoystickDisconnected>()) {
+        std::cout << "disconnected!" << std::endl;
+    }
+    if (event->is<sf::Event::JoystickMoved>()) {
+        std::cout << "joystick move" << std::endl;
+    }
+    else if (event->is<sf::Event::KeyPressed>()) {}
+    else if (event->is<sf::Event::MouseMoved>()) {}
+    else {
+        std::cout << "not joystick moved" << std::endl;
+    }
+    if (auto* joystick_move = event->getIf<sf::Event::JoystickMoved>()) {
+        if (joystick_move->axis == sf::Joystick::Axis::X) {
+            direction_.x = applyDeadzone(joystick_move->position);
+        }
+        if (joystick_move->axis == sf::Joystick::Axis::Y) {
+            direction_.y = applyDeadzone(joystick_move->position);
+        }
+        std::cout << "joystick move" << std::endl;
+    }
+    if (auto* button_press = event->getIf<sf::Event::JoystickButtonPressed>()) {
+        bool hit = button_press->button == 7;
+        hitPressed_ = hit && !prevHit_;
+        prevHit_ = hit;
+        std::cout << "button press" << std::endl;
+    }
 
     float power = std::sqrt(direction_.x * direction_.x + direction_.y * direction_.y);
     power_ = std::clamp(power, 0.0f, 1.0f);
-
-    bool hit = sf::Joystick::isButtonPressed(index_, 7);
-    hitPressed_ = hit && !prevHit_;
-    prevHit_ = hit;
 }
 
 bool ControllerInput::connected() const {

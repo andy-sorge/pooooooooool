@@ -255,7 +255,7 @@ void Display::update() {
                 if (key->code == sf::Keyboard::Key::Escape) {
                     this->window_.close();
                 }
-
+                // main keyboard host controls
                 if (role_ == HOST) {
                     if (key->code == sf::Keyboard::Key::Num1) {
                         tableTop_.setTexture(getTableTop(LEFT));
@@ -284,6 +284,10 @@ void Display::update() {
                 }
             }
 
+            // update controller
+            controller_.update(event);
+
+            // clicking to spawn a ball
             if (role_ == HOST) {
                 if (auto* button = event->getIf<sf::Event::MouseButtonPressed>()) {
                    if (button->button == sf::Mouse::Button::Left) {
@@ -303,7 +307,6 @@ void Display::update() {
         }
 
         if (role_ == HOST) {
-            controller_.update();
             sf::Vector2f dir = controller_.direction();
             Vector shotDir{-dir.x, -dir.y};
             aimDir_ = dir;
