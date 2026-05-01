@@ -40,6 +40,7 @@ struct TestProtocol {
 };
 
 #include "include/Display.hpp"
+#include "include/MainMenu.hpp"
 
 template <class T>
 T dot_product(T x1, T y1, T x2, T y2) {
@@ -56,13 +57,18 @@ int main(int argc, char** argv) {
     unsigned int totalDisplays = 1;
     unsigned int displayIndex = 0;
     std::string hostAddress = "127.0.0.1";
+    bool useMenu = (argc == 1);
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-        if (arg == "--host") {
+        if (arg == "--menu") {
+            useMenu = true;
+        } else if (arg == "--host") {
             role = HOST;
+            useMenu = false;
         } else if (arg == "--client") {
             role = CLIENT;
+            useMenu = false;
             if (i + 1 < argc) {
                 hostAddress = argv[++i];
             }
@@ -76,6 +82,13 @@ int main(int argc, char** argv) {
         } else if (arg == "--index" && i + 1 < argc) {
             displayIndex = static_cast<unsigned int>(std::stoul(argv[++i]));
         }
+    }
+
+    if (useMenu) {
+        MainMenu menu;
+        auto result = menu.run();
+        role = result.role;
+        hostAddress = result.hostAddress;
     }
 
     if (totalDisplays < 1) totalDisplays = 1;

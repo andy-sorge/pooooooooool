@@ -1,26 +1,42 @@
 #include "../include/Vector.hpp"
+#include <algorithm>
+#include <chrono>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+
+#include <SFML/Network/IpAddress.hpp>
+#include <SFML/Network/Socket.hpp>
+#include <SFML/Network/SocketHandle.hpp>
+#include <SFML/Network/TcpListener.hpp>
+#include <SFML/Network/TcpSocket.hpp>
+
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <algorithm>
-#include <chrono>
-#include "../include/Display.hpp"
-#include "../include/Audio.hpp"
+
+#include "Physics.hpp"
+#include "Display.hpp"
+#include "Audio.hpp"
+#include "PoolClient.hpp"
+#include "PoolServer.hpp"
+#include "Utilities.hpp"
 
 namespace {
     constexpr float kPocketRadius = 100.0f;
+    constexpr float kPort = 58008;
 }
 
-Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, unsigned int displayIndex, std::string hostAddress):
+Display::Display(TableSegment& seg, Role& role, unsigned int displays, unsigned int index, std::string& hostAddress):
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
 logicalSize_({ 1703, 670 }),
+displays_(displays),
+index_(index),
 tableTop_(getTableTop(seg)),
-tableBorder_(getTableBorder(seg)) {
+tableBorder_(getTableBorder(seg)) {tableTop_(getTableTop(seg)),
     this->role_ = role;
     this->seg_ = seg;
-    this->totalDisplays_.store(std::max(1u, totalDisplays));
-    this->displayIndex_ = displayIndex;
     // table border is 205 at top and bottom
     // table border is 217 at left and right
     this->physicalSize_ = this->window_.getSize();
@@ -39,7 +55,7 @@ tableBorder_(getTableBorder(seg)) {
         (float)this->renderedOffset_.y
     });
     this->tableTop_.setScale({ this->scale_, this->scale_});
-    
+
     setupTextures();
 
     if (this->role_ == HOST) {
@@ -80,38 +96,30 @@ void Display::calculateScale() {
 }
 
 void Display::recalculateLayout() {
-    unsigned int displays = this->totalDisplays_.load();
+    unsigned int displays = this->displays_;
     if (displays < 1) displays = 1;
 
     unsigned int logicalWidth = 1703;
-    if (displays == 1) {
-        logicalWidth = 1703;
-    } else if (displays == 2) {
-        logicalWidth = 1703 * 2;
-    } else {
-        logicalWidth = 1703 * 2 + 1920 * (displays - 2);
-    }
+    if (displays == 1) logicalWidth = 1703;
+    else if (displays == 2) logicalWidth = 1703 * 2;
+    else logicalWidth = 1703 * 2 + 1920 * (displays - 2);
 
     this->logicalSize_ = sf::Vector2u({ logicalWidth, 670 });
 
-    unsigned int index = this->displayIndex_;
+    unsigned int index = this->index_;
     if (index >= displays) index = displays - 1;
 
     unsigned int displayOffsetX = 0;
-    if (index == 0) {
-        displayOffsetX = 0;
-    } else if (index == displays - 1) {
-        displayOffsetX = logicalWidth - 1703;
-    } else {
-        displayOffsetX = 1703 + 1920 * (index - 1);
-    }
+    if (index == 0) displayOffsetX = 0;
+    else if (index == displays - 1) displayOffsetX = logicalWidth - 1703;
+    else displayOffsetX = 1703 + 1920 * (index - 1);
 
     float baseOffsetX = (index == 0) ? 217.0f : 0.0f;
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }
 
 std::vector<Vector> Display::pocketCenters() const {
-    unsigned int displays = this->totalDisplays_.load();
+    unsigned int displays = this->displays_;
     if (displays < 1) displays = 1;
 
     std::vector<Vector> pockets;
@@ -149,104 +157,89 @@ void Display::drawBall(Ball& b) {
     this->window_.draw(b);
 }
 
-Display::~Display() {
-    if (io_) io_->stop();
-    if (networkThread_.joinable()) networkThread_.join();
-}
-
 void Display::setupNetworking(const std::string& hostAddress) {
-    io_ = std::make_unique<asio::io_context>();
-
     if (role_ == HOST) {
-        asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), kPoolPort);
-        server_ = std::make_unique<PoolServer>(*io_, endpoint, [this]() {
-            this->totalDisplays_.fetch_add(1);
-            this->logicalDirty_.store(true);
+        std::cout << "i am a server!" << std::endl;
+        server_ = std::make_unique<PoolServer>(kPort);
+        server_->start();
+
+        server_->registerConnection([this]() {
+            server_->send(packageDisplays(++displays_));
+            //recalculateLayout();
         });
     } else {
-        asio::ip::tcp::resolver resolver(*io_);
-        auto endpoints = resolver.resolve(hostAddress, kPoolPortString);
-        client_ = std::make_unique<PoolClient>(*io_, endpoints, [this](const std::vector<PoolBallState>& state, const bool playing_music) {
+        std::cout << "i am a client!" << std::endl;
+        client_ = std::make_unique<PoolClient>();
+        client_->connect(hostAddress, kPort);
+
+        client_->registerHandle(PacketType::GameState, [this](sf::Packet& packet) {
+            std::vector<BallState> state;
+            interpretBalls(packet, state);
             applyNetworkState(state);
-            this->playing_music = playing_music;
-            if (playing_music && !getMusicStarted()) {
-                startMusicRight();
-            }
+        });
+        client_->registerHandle(PacketType::Connection, [this](sf::Packet& packet) {
+            interpretDisplays(packet, displays_);
+            index_ = displays_;
+            std::cout << displays_;
+            recalculateLayout();
         });
 
-        joinTimer_ = std::make_unique<asio::steady_timer>(*io_);
-        joinTimer_->expires_after(std::chrono::seconds(5));
-        joinTimer_->async_wait([this](const std::error_code& errorCode) {
-            if (!errorCode && role_ == CLIENT && !hasNetworkState_) {
-                shouldQuit_ = true;
-            }
-        });
+        auto now = std::chrono::steady_clock::now();
+        auto end = now + std::chrono::milliseconds(5000);
+        while (std::chrono::steady_clock::now() < end) {
+            if (client_->isConnected()) break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        if (!client_->isConnected()) throw std::runtime_error("client failed to connect!");
+
+        //this->playing_music = playing_music;
+        //if (playing_music && !getMusicStarted()) {
+        //    startMusicRight();
+        //}
     }
-
-    networkThread_ = std::thread([this]() {
-        io_->run();
-    });
 }
 
-void Display::applyNetworkState(const std::vector<PoolBallState>& state) {
-    std::lock_guard<std::mutex> lock(ballsMutex_);
-
+void Display::applyNetworkState(const std::vector<BallState>& state) {
     if (balls.size() != state.size()) {
         balls.clear();
         balls.reserve(state.size());
-        for (const auto& ball : state) {
-            balls.emplace_back(Vector{ball.x, ball.y}, Vector{ball.vx, ball.vy}, ball.number, this->scale_);
-        }
+        for (const auto& ball : state) balls.emplace_back(Vector{ball.x, ball.y}, Vector{ball.vx, ball.vy}, ball.number, this->scale_);
     } else {
         for (std::size_t i = 0; i < state.size(); ++i) {
-            balls[i].pos = Vector{state[i].x, state[i].y};
-            balls[i].vel = Vector{state[i].vx, state[i].vy};
+            balls[i].pos = {state[i].x, state[i].y};
+            balls[i].vel = {state[i].vx, state[i].vy};
         }
     }
-
-    hasNetworkState_ = true;
 }
 
 void Display::broadcastState() {
     if (!server_) return;
 
-    std::vector<PoolBallState> state;
+    std::vector<BallState> state;
     state.reserve(balls.size());
-    for (const auto& ball : balls) {
-        state.push_back(PoolBallState{
-            .number = ball.number,
-            .x = ball.pos.x,
-            .y = ball.pos.y,
-            .vx = ball.vel.x,
-            .vy = ball.vel.y
-        });
-    }
+    for (const auto& ball : balls)  state.push_back(BallState{ball.number, ball.pos.x, ball.pos.y, ball.vel.x, ball.vel.y});
 
-    server_->broadcast(makeStateMessage(state, playing_music));
+    server_->send(packageBalls(state));
 }
 
 void Display::update() {
     sf::Clock clock;
     sf::Time dt = sf::Time::Zero;
-    int holding_ball = -1;
-    while (this->window_.isOpen())
-    {
-        if (role_ == CLIENT && shouldQuit_) {
-            this->window_.close();
-        }
-        if (role_ == HOST && logicalDirty_.exchange(false)) {
-            recalculateLayout();
-        }
 
-        while (const std::optional event = this->window_.pollEvent())
-        {
+    int holding_ball = -1;
+
+    while (this->window_.isOpen()) {
+        //if (role_ == CLIENT) this->window_.close();
+        if (role_ == HOST) recalculateLayout();
+
+        // process window events
+        while (const std::optional event = this->window_.pollEvent()) {
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                if (key->code == sf::Keyboard::Key::Escape) {
-                    this->window_.close();
-                }
+                if (key->code == sf::Keyboard::Key::Escape) this->window_.close();
 
                 if (role_ == HOST) {
                     if (key->code == sf::Keyboard::Key::Num1) {
@@ -312,42 +305,50 @@ void Display::update() {
         //     this->window_.draw(circle);
         // }
 
+        // physics
         if (role_ == HOST) {
             if (true/*this->window_.hasFocus()*/) { // physics
                 dt += clock.reset();
                 clock.start();
+
                 sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
+
                 if (dt > between_frames) {
                     dt -= between_frames;
                     initial_ball_velocities.clear();
+
                     for (Ball& ball: balls) {
                         initial_ball_velocities.push_back(ball.vel);
                         this->drawBall(ball);
                         ball.tick_physics(between_frames.asSeconds());
                     }
+
                     for (int i = 0; i < balls.size(); ++i) {
                         Ball& ball1 = balls[i];
                         if (ball1.pos.y < ball1.radius) {
                             ball1.pos.y = ball1.radius;
                             ball1.vel.y = -ball1.vel.y - ball1.friction().magnitude();
                         }
+
                         if (ball1.pos.y > this->logicalSize_.y - ball1.radius) {
                             ball1.pos.y = this->logicalSize_.y - ball1.radius;
                             ball1.vel.y = -ball1.vel.y + ball1.friction().magnitude();
                         }
+
                         if (ball1.pos.x < ball1.radius) {
                             ball1.pos.x = ball1.radius;
                             ball1.vel.x = -ball1.vel.x - ball1.friction().magnitude();
                         }
+
                         if (ball1.pos.x > this->logicalSize_.x - ball1.radius) {
                             ball1.pos.x = this->logicalSize_.x - ball1.radius;
                             ball1.vel.x = -ball1.vel.x + ball1.friction().magnitude();
                         }
+
                         for (int j = i+1; j < balls.size(); ++j) {
                             Ball& ball2 = balls[j];
-                            if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) {
-                                ball1.hit(ball2, between_frames.asSeconds());
-                            }
+
+                            if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) ball1.hit(ball2, between_frames.asSeconds());
                         }
                     }
 
@@ -357,19 +358,14 @@ void Display::update() {
 
                     broadcastState();
                 }
-                for (Ball& ball: balls) {
-                    this->drawBall(ball);
-                }
+
+                for (Ball& ball: balls) this->drawBall(ball);
             }
+
             else clock.stop();
-        } else {
-            std::lock_guard<std::mutex> lock(ballsMutex_);
-            if (hasNetworkState_) {
-                for (Ball& ball: balls) {
-                    this->drawBall(ball);
-                }
-            }
         }
+        // clients draw balls
+        else for (Ball& ball: balls) this->drawBall(ball);
 
         this->window_.display();
     }
