@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "SFML/Network/Packet.hpp"
+#include "Ball.hpp"
 
 template <typename T>
 class Synchronized {
@@ -61,6 +62,11 @@ struct BallState {
     double vy;
 };
 
+enum Role : uint16_t {
+    Host,
+    Client
+};
+
 inline sf::Packet& operator<<(sf::Packet& packet, const BallState& state) {
     return packet << state.number << state.x << state.y << state.vx << state.vy;
 }
@@ -68,3 +74,21 @@ inline sf::Packet& operator<<(sf::Packet& packet, const BallState& state) {
 inline sf::Packet& operator>>(sf::Packet& packet, BallState& state) {
     return packet >> state.number >> state.x >> state.y >> state.vx >> state.vy;
 }
+
+enum PlayerTurn {
+    None,
+    Player1,
+    Player2
+};
+
+struct State {
+    Role role;
+    std::uint16_t index;
+    std::uint16_t displays;
+
+    std::vector<Ball> balls;
+    std::vector<Vector> pocket;
+    sf::Vector2u logicalSpace;
+
+    State() : role(Role::Host), displays(1), index(0) {}
+};

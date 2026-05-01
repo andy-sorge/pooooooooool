@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         }
     }
 
-
+    Game game;
 
     if (useMenu) {
         MainMenu menu;

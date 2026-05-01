@@ -1,12 +1,14 @@
-#include "../include/Ball.hpp"
-#include "../include/Audio.hpp"
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Texture.hpp>
+#include "Ball.hpp"
+#include "Audio.hpp"
+#include "Audio.hpp"
+
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "../include/Audio.hpp"
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+
 Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
     sf::Sprite(resolveTexture(ball_number))
 {
@@ -27,10 +29,10 @@ Ball::Ball(Vector position, Vector velocity, int8_t ball_number, float scale) :
     radius = BALL_RADIUS;
     mass = 1;
 
-    if      (number == 0)                 { type = BallType::Cue;    }
-    else if (number >= 1 && number <= 7)  { type = BallType::Solid;  }  // also fixed: was >= 0
-    else if (number == 8)                 { type = BallType::Eight;  }
-    else if (number >= 9 && number <= 15) { type = BallType::Stripe; }
+    if      (number == 0)                 { type = Ball::Type::Cue;    }
+    else if (number >= 1 && number <= 7)  { type = Ball::Type::Solid;  }  // also fixed: was >= 0
+    else if (number == 8)                 { type = Ball::Type::Eight;  }
+    else if (number >= 9 && number <= 15) { type = Ball::Type::Stripe; }
 
     this->setPosition(pos.sf());
 }

@@ -1,3 +1,4 @@
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <algorithm>
 #include <chrono>
 #include <stdexcept>
@@ -16,21 +17,19 @@
 #include "Vector.hpp"
 #include "Display.hpp"
 #include "Audio.hpp"
-#include "../include/Vector.hpp"
+#include "Vector.hpp"
+
 namespace {
     constexpr float kPocketRadius = 100.0f;
     constexpr float kPort = 58008;
 }
 
-Display::Display(TableSegment& seg, Role& role, unsigned int displays, unsigned int index, std::string& hostAddress):
-window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
-logicalSize_({ 1703, 670 }),
-displays_(displays),
-index_(index),
+Display::Display(State& state, sf::RenderWindow& window) :
+state_(state),
+window_(window),
 tableTop_(getTableTop(seg)),
 tableBorder_(getTableBorder(seg)) {
-    this->role_ = role;
-    this->seg_ = seg;
+    this->seg_ = seg; // TODO find segment based on index
     // table border is 205 at top and bottom
     // table border is 217 at left and right
     this->physicalSize_ = this->window_.getSize();
@@ -39,50 +38,26 @@ tableBorder_(getTableBorder(seg)) {
     this->calculateScale();
     this->recalculateLayout();
 
-    this->tableBorder_.setPosition({
-        (float)this->renderedOffset_.x,
-        (float)this->renderedOffset_.y
-    });
+    this->tableBorder_.setPosition({ static_cast<float>(renderedOffset_.x), static_cast<float>(renderedOffset_.y) });
     this->tableBorder_.setScale({ this->scale_, this->scale_});
-    this->tableTop_.setPosition({
-        (float)this->renderedOffset_.x,
-        (float)this->renderedOffset_.y
-    });
+    this->tableTop_.setPosition({ static_cast<float>(renderedOffset_.x), static_cast<float>(renderedOffset_.y) });
     this->tableTop_.setScale({ this->scale_, this->scale_});
 
     setupTextures();
 
-    if (this->role_ == HOST) {
-        create_arranged_balls(balls, this->scale_);
-        for (Ball& b : this->balls) {
-            b.setScale({ this->scale_, this->scale_ });
-        }
+    if (state_.role == Role::Host) {
+        create_arranged_balls(state_.balls, this->scale_);
+        for (Ball& ball : state_.balls) ball.setScale({ this->scale_, this->scale_ });
     }
-
-    setupNetworking(hostAddress);
-
-    playing_music = false;
-    // if (this->role_ == Role::HOST) {
-    //     startMusicLeft();
-    // }
-    // else if (this->role_ == Role::CLIENT) {
-    //     startMusicRight();
-    // }
 }
 
 void Display::calculateRenderedSize() {
     this->physicalSize_ = this->window_.getSize();
-    this->renderedSize_ = sf::Vector2u({
-        this->physicalSize_.x,
-        this->physicalSize_.x * 9 / 16
-    });
+    this->renderedSize_ = sf::Vector2u({ physicalSize_.x, physicalSize_.x * (9 / 16) });
 }
 
 void Display::calculateRenderedOffset() {
-    this->renderedOffset_ = sf::Vector2u({
-        this->physicalSize_.x - this->renderedSize_.x,
-        this->physicalSize_.y - this->renderedSize_.y
-    });
+    this->renderedOffset_ = sf::Vector2u({ physicalSize_.x - renderedSize_.x, physicalSize_.y - renderedSize_.y });
 }
 
 void Display::calculateScale() {
@@ -90,7 +65,7 @@ void Display::calculateScale() {
 }
 
 void Display::recalculateLayout() {
-    unsigned int displays = this->displays_;
+    unsigned int displays = state_.displays;
     if (displays < 1) displays = 1;
 
     unsigned int logicalWidth = 1703;
@@ -98,9 +73,9 @@ void Display::recalculateLayout() {
     else if (displays == 2) logicalWidth = 1703 * 2;
     else logicalWidth = 1703 * 2 + 1920 * (displays - 2);
 
-    this->logicalSize_ = sf::Vector2u({ logicalWidth, 670 });
+    state_.logicalSpace = sf::Vector2u({ logicalWidth, 670 });
 
-    unsigned int index = this->index_;
+    unsigned int index = state_.index;
     if (index >= displays) index = displays - 1;
 
     unsigned int displayOffsetX = 0;
@@ -112,8 +87,21 @@ void Display::recalculateLayout() {
     this->tableOffset_ = sf::Vector2f({ baseOffsetX - static_cast<float>(displayOffsetX), 205 });
 }
 
+void Display::applyNetworkState(const std::vector<BallState>& state) {
+    if (state_.balls.size() != state.size()) {
+        state_.balls.clear();
+        state_.balls.reserve(state.size());
+        for (const auto& ball : state) state_.balls.emplace_back(Vector{ball.x, ball.y}, Vector{ball.vx, ball.vy}, ball.number, this->scale_);
+    } else {
+        for (std::size_t i = 0; i < state.size(); ++i) {
+            state_.balls[i].pos = {state[i].x, state[i].y};
+            state_.balls[i].vel = {state[i].vx, state[i].vy};
+        }
+    }
+}
+
 std::vector<Vector> Display::pocketCenters() const {
-    unsigned int displays = this->displays_;
+    unsigned int displays = state_.displays;
     if (displays < 1) displays = 1;
 
     std::vector<Vector> pockets;
@@ -136,85 +124,18 @@ std::vector<Vector> Display::pocketCenters() const {
 bool Display::isPocketed(const Ball& ball) const {
     for (const auto& pocket : pocketCenters()) {
         const auto dist = (ball.pos - pocket).magnitude();
-        if (dist <= (kPocketRadius + ball.radius)) {
-            return true;
-        }
+        if (dist <= (kPocketRadius + ball.radius)) return true;
     }
+
     return false;
 }
 
-void Display::drawBall(Ball& b) {
-    b.setPosition({
-        ((float)b.pos.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
-        ((float)b.pos.y + this->tableOffset_.y) * this->scale_  + this->renderedOffset_.y,
+void Display::drawBall(Ball& ball) {
+    ball.setPosition({
+        (static_cast<float>ball.pos.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
+        (static_cast<float>ball.pos.y + this->tableOffset_.y) * this->scale_  + this->renderedOffset_.y,
     });
-    this->window_.draw(b);
-}
-
-void Display::setupNetworking(const std::string& hostAddress) {
-    if (role_ == HOST) {
-        std::cout << "i am a server!" << std::endl;
-        server_ = std::make_unique<PoolServer>(kPort);
-        server_->start();
-
-        server_->registerConnection([this]() {
-            server_->send(packageDisplays(++displays_));
-            //recalculateLayout();
-        });
-    } else {
-        std::cout << "i am a client!" << std::endl;
-        client_ = std::make_unique<PoolClient>();
-        client_->connect(hostAddress, kPort);
-
-        client_->registerHandle(PacketType::GameState, [this](sf::Packet& packet) {
-            std::vector<BallState> state;
-            interpretBalls(packet, state);
-            applyNetworkState(state);
-        });
-        client_->registerHandle(PacketType::Connection, [this](sf::Packet& packet) {
-            interpretDisplays(packet, displays_);
-            index_ = displays_;
-            std::cout << displays_;
-            recalculateLayout();
-        });
-
-        auto now = std::chrono::steady_clock::now();
-        auto end = now + std::chrono::milliseconds(5000);
-        while (std::chrono::steady_clock::now() < end) {
-            if (client_->isConnected()) break;
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-
-        if (!client_->isConnected()) throw std::runtime_error("client failed to connect!");
-
-        //this->playing_music = playing_music;
-        //if (playing_music && !getMusicStarted()) {
-        //    startMusicRight();
-        //}
-    }
-}
-
-void Display::applyNetworkState(const std::vector<BallState>& state) {
-    if (balls.size() != state.size()) {
-        balls.clear();
-        balls.reserve(state.size());
-        for (const auto& ball : state) balls.emplace_back(Vector{ball.x, ball.y}, Vector{ball.vx, ball.vy}, ball.number, this->scale_);
-    } else {
-        for (std::size_t i = 0; i < state.size(); ++i) {
-            balls[i].pos = {state[i].x, state[i].y};
-            balls[i].vel = {state[i].vx, state[i].vy};
-        }
-    }
-}
-
-void Display::broadcastState() {
-    if (!server_) return;
-
-    std::vector<BallState> state;
-    state.reserve(balls.size());
-    for (const auto& ball : balls)  state.push_back(BallState{ball.number, ball.pos.x, ball.pos.y, ball.vel.x, ball.vel.y});
-
-    server_->send(packageBalls(state));
+    this->window_.draw(ball);
 }
 
 void Display::update() {
@@ -300,64 +221,7 @@ void Display::update() {
         // }
 
         // physics
-        if (role_ == HOST) {
-            if (true/*this->window_.hasFocus()*/) { // physics
-                dt += clock.reset();
-                clock.start();
-
-                sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
-
-                if (dt > between_frames) {
-                    dt -= between_frames;
-                    initial_ball_velocities.clear();
-
-                    for (Ball& ball: balls) {
-                        initial_ball_velocities.push_back(ball.vel);
-                        this->drawBall(ball);
-                        ball.tick_physics(between_frames.asSeconds());
-                    }
-
-                    for (int i = 0; i < balls.size(); ++i) {
-                        Ball& ball1 = balls[i];
-                        if (ball1.pos.y < ball1.radius) {
-                            ball1.pos.y = ball1.radius;
-                            ball1.vel.y = -ball1.vel.y - ball1.friction().magnitude();
-                        }
-
-                        if (ball1.pos.y > this->logicalSize_.y - ball1.radius) {
-                            ball1.pos.y = this->logicalSize_.y - ball1.radius;
-                            ball1.vel.y = -ball1.vel.y + ball1.friction().magnitude();
-                        }
-
-                        if (ball1.pos.x < ball1.radius) {
-                            ball1.pos.x = ball1.radius;
-                            ball1.vel.x = -ball1.vel.x - ball1.friction().magnitude();
-                        }
-
-                        if (ball1.pos.x > this->logicalSize_.x - ball1.radius) {
-                            ball1.pos.x = this->logicalSize_.x - ball1.radius;
-                            ball1.vel.x = -ball1.vel.x + ball1.friction().magnitude();
-                        }
-
-                        for (int j = i+1; j < balls.size(); ++j) {
-                            Ball& ball2 = balls[j];
-
-                            if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) ball1.hit(ball2, between_frames.asSeconds());
-                        }
-                    }
-
-                    balls.erase(std::remove_if(balls.begin(), balls.end(), [this](const Ball& ball) {
-                        return isPocketed(ball);
-                    }), balls.end());
-
-                    broadcastState();
-                }
-
-                for (Ball& ball: balls) this->drawBall(ball);
-            }
-
-            else clock.stop();
-        }
+        //
         // clients draw balls
         else for (Ball& ball: balls) this->drawBall(ball);
 

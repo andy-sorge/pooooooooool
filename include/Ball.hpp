@@ -1,21 +1,22 @@
 #pragma once
 
-#include "SFML/Graphics.hpp"
-#include "Vector.hpp"
+#include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include "Textures.hpp"
+
+#include "Vector.hpp"
 
 #define BALL_RADIUS 50
 
-enum class BallType {
-    Stripe,
-    Solid,
-    Eight,
-    Cue
-};
-
 class Ball : public sf::Sprite {
 public:
+
+    enum class Type {
+        Stripe,
+        Solid,
+        Eight,
+        Cue
+    };
+
     // Ball number 0 is the cue ball
     Ball(Vector position, Vector velocity, int8_t number, float scale);
     ~Ball() override;
@@ -27,13 +28,12 @@ public:
     unit_t radius;
     unit_t mass;
     int8_t number;
-    BallType type;
+    Type type;
 
     void hit(Ball& rhs, double dt);
     [[nodiscard]] Vector friction() const;
     void tick_physics(double dt);
     // void setCenter(sf::Vector2f pos);
-
 private:
     sf::Texture tex_;
 };

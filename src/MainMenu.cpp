@@ -1,8 +1,7 @@
-#include "../include/MainMenu.hpp"
+#include "MainMenu.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
-
 
 void centerText(sf::Text& text, const sf::Vector2f& center) {
     auto bounds = text.getLocalBounds();
@@ -11,7 +10,7 @@ void centerText(sf::Text& text, const sf::Vector2f& center) {
 }
 
 MainMenu::Result MainMenu::run() {
-    Result result{HOST, "127.0.0.1"};
+    Result result{Role::Host, "127.0.0.1"};
 
     sf::RenderWindow window(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(60);
@@ -69,8 +68,8 @@ MainMenu::Result MainMenu::run() {
                     window.close();
                 }
                 if (key->code == sf::Keyboard::Key::Enter && ipActive) {
-                    result.role = CLIENT;
-                    result.hostAddress = ipInput.empty() ? "127.0.0.1" : ipInput;
+                    result.role = Role::Client;
+                    result.host = ipInput.empty() ? "127.0.0.1" : ipInput;
                     return result;
                 }
             }
@@ -91,13 +90,13 @@ MainMenu::Result MainMenu::run() {
                 if (mouse->button == sf::Mouse::Button::Left) {
                     sf::Vector2f pos(static_cast<float>(mouse->position.x), static_cast<float>(mouse->position.y));
                     if (hostButton.getGlobalBounds().contains(pos)) {
-                        result.role = HOST;
-                        result.hostAddress = "127.0.0.1";
+                        result.role = Role::Host;
+                        result.host = "127.0.0.1";
                         return result;
                     }
                     if (joinButton.getGlobalBounds().contains(pos)) {
-                        result.role = CLIENT;
-                        result.hostAddress = ipInput.empty() ? "127.0.0.1" : ipInput;
+                        result.role = Role::Client;
+                        result.host = ipInput.empty() ? "127.0.0.1" : ipInput;
                         return result;
                     }
                     if (ipBox.getGlobalBounds().contains(pos)) {
