@@ -20,6 +20,8 @@ private:
     float power_{0.0f};
     bool hitPressed_{false};
     bool prevHit_{false};
+    bool triggerModeSet_{false};
+    bool triggerCenteredAt50_{false};
 
     float readAxis(sf::Joystick::Axis axis) const;
     bool hasAxis(sf::Joystick::Axis axis) const;
