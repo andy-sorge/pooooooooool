@@ -3,6 +3,28 @@
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/System/Vector2.hpp"
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <atomic>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+#include <asio.hpp>
+#include "../include/Textures.hpp"
+#include "SFML/Graphics.hpp"
+#include "Ball.hpp"
+#include "ControllerInput.hpp"
+#include "PoolNetwork.hpp"
+
+typedef struct rect {
+    int x;
+    int y;
+} Rect;
 
 #include "Ball.hpp"
 #include "Textures.hpp"
@@ -39,6 +61,21 @@ private:
     void calculateRenderedSize();
     void calculateRenderedOffset();
     void calculateScale();
+        
+    sf::Sprite tableTop_;
+    sf::Sprite tableBorder_;
+    sf::Texture cueTexture_;
+    sf::Sprite cueSprite_;
+    
+    sf::RenderWindow window_;
+    void drawBall(Ball& b);
+    
+    std::vector<Ball> balls;
+    std::vector<Vector> initial_ball_velocities; // for physics ✨
+    ControllerInput controller_{};
+    sf::Vector2f aimDir_{0.0f, 0.0f};
+    float aimPower_{0.0f};
+    bool aiming_{false};
 
     sf::Sprite top_;
     sf::Sprite border_;

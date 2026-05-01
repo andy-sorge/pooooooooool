@@ -1,3 +1,7 @@
+#include "../include/MainMenu.hpp"
+#include "../include/Textures.hpp"
+
+#include <SFML/Graphics.hpp>
 #include <iostream>
 
 #include "SFML/Graphics/RectangleShape.hpp"
@@ -21,6 +25,10 @@ MainMenu::Result MainMenu::run() {
 
     sf::Font font;
     if (font.openFromFile("Roboto-Regular.ttf")) std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
+
+    sf::Sprite crown(getUiCrown());
+    crown.setScale({0.4, 0.4});
+    crown.setPosition({200, 20});
 
     sf::Text title(font, "POOOOOOOOOOL", 48);
     title.setFillColor(sf::Color::White);
@@ -112,16 +120,17 @@ MainMenu::Result MainMenu::run() {
         ipText.setFillColor(ipInput.empty() ? sf::Color(140, 140, 140) : sf::Color::White);
         ipText.setPosition({205.0f, 400.0f});
 
-        window_.clear(sf::Color(10, 10, 10));
-        window_.draw(title);
-        window_.draw(hostButton);
-        window_.draw(joinButton);
-        window_.draw(ipBox);
-        window_.draw(hostText);
-        window_.draw(joinText);
-        window_.draw(ipLabel);
-        window_.draw(ipText);
-        window_.display();
+        window.clear(sf::Color(10, 80, 10));
+        window.draw(crown);
+        window.draw(title);
+        window.draw(hostButton);
+        window.draw(joinButton);
+        window.draw(ipBox);
+        window.draw(hostText);
+        window.draw(joinText);
+        window.draw(ipLabel);
+        window.draw(ipText);
+        window.display();
     }
 
     return result;

@@ -1,4 +1,15 @@
 #include <iostream>
+#include "../include/Physics.hpp"
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Angle.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include "../include/Display.hpp"
+#include "../include/Audio.hpp"
 
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Graphics/Sprite.hpp"
