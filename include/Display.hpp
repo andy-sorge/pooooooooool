@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <atomic>
 #include <iostream>
 #include <memory>
@@ -52,6 +53,8 @@ private:
         
     sf::Sprite tableTop_;
     sf::Sprite tableBorder_;
+    sf::Texture cueTexture_;
+    sf::Sprite cueSprite_;
     
     sf::RenderWindow window_;
     void drawBall(Ball& b);
@@ -59,6 +62,9 @@ private:
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
     ControllerInput controller_{};
+    sf::Vector2f aimDir_{0.0f, 0.0f};
+    float aimPower_{0.0f};
+    bool aiming_{false};
 
     bool playing_music;
 

@@ -2,9 +2,11 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Angle.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include "../include/Display.hpp"
 #include "../include/Audio.hpp"
 
@@ -16,6 +18,8 @@ Display::Display(TableSegment seg, Role role, unsigned int totalDisplays, unsign
 window_(sf::VideoMode::getDesktopMode(), "POOOOOOOOOOL", sf::State::Fullscreen),
 logicalSize_({ 1703, 670 }),
 tableTop_(getTableTop(seg)),
+cueTexture_("graphics/other/cue.png"),
+cueSprite_(cueTexture_),
 tableBorder_(getTableBorder(seg)) {
     this->role_ = role;
     this->seg_ = seg;
@@ -41,6 +45,10 @@ tableBorder_(getTableBorder(seg)) {
     this->tableTop_.setScale({ this->scale_, this->scale_});
     
     setupTextures();
+
+    cueSprite_.setScale({ this->scale_, this->scale_ });
+    auto size = cueTexture_.getSize();
+    cueSprite_.setOrigin({ static_cast<float>(size.x) / 2.0f, 0 });
 
     if (this->role_ == HOST) {
         create_arranged_balls(balls, this->scale_);
@@ -296,12 +304,15 @@ void Display::update() {
 
         if (role_ == HOST) {
             controller_.update();
+            sf::Vector2f dir = controller_.direction();
+            Vector shotDir{-dir.x, -dir.y};
+            aimDir_ = dir;
+            aimPower_ = std::clamp(controller_.power(), 0.0f, 1.0f);
+            aiming_ = shotDir.magnitude() > 0.05f;
+
             if (controller_.hitPressed()) {
-                sf::Vector2f dir = controller_.direction();
-                Vector shotDir{dir.x, dir.y};
                 if (shotDir.magnitude() > 0.05) {
-                    float power = controller_.power();
-                    float speed = 3000.0f * std::max(0.1f, power);
+                    float speed = 3000.0f * std::max(0.1f, aimPower_);
                     shotDir = shotDir.normalized() * speed;
                     for (Ball& ball : balls) {
                         if (ball.number == 0) {
@@ -317,6 +328,33 @@ void Display::update() {
 
         this->window_.draw(this->tableTop_);
         this->window_.draw(this->tableBorder_);
+
+        if (role_ == HOST && aiming_ && cueTexture_.getSize().x > 0) {
+            Vector cuePos;
+            bool foundCue = false;
+            for (const Ball& ball : balls) {
+                if (ball.number == 0) {
+                    cuePos = ball.pos;
+                    foundCue = true;
+                    break;
+                }
+            }
+            if (foundCue) {
+                Vector aimVec{aimDir_.x, aimDir_.y};
+                if (aimVec.magnitude() > 0.05f) {
+                    float angle = (std::atan2(aimVec.y, aimVec.x) * 180.0f / 3.14159265f) - 90.0f;
+                    float pullback = 120.0f * aimPower_;
+                    Vector offset = aimVec.normalized() * pullback;
+                    sf::Vector2f screenPos{
+                        (float)((float)cuePos.x + this->tableOffset_.x + offset.x) * this->scale_ + this->renderedOffset_.x,
+                        (float)((float)cuePos.y + this->tableOffset_.y + offset.y) * this->scale_ + this->renderedOffset_.y
+                    };
+                    cueSprite_.setPosition(screenPos);
+                    cueSprite_.setRotation(sf::degrees(angle));
+                    this->window_.draw(cueSprite_);
+                }
+            }
+        }
 
         // for (const auto& pocket : pocketCenters()) {
         //     sf::CircleShape circle(kPocketRadius * this->scale_);

@@ -4,11 +4,14 @@
 #include <cmath>
 
 
-constexpr float deadband = 15.0f;
+constexpr float deadband = 5.0f;
 
-float normalizeAxis(float raw) {
-    float clamped = std::clamp(raw, -100.0f, 100.0f);
-    return (clamped + 100.0f) / 200.0f;
+float triggerPower(float raw, bool centeredAt50) {
+    if (centeredAt50) {
+        return std::clamp(std::abs((raw - 50.0f) / 50.0f), 0.0f, 1.0f);
+    }
+    if (raw < 0.0f) return std::clamp(std::abs(raw / 100.0f), 0.0f, 1.0f);
+    return std::clamp(raw / 100.0f, 0.0f, 1.0f);
 }
 
 float applyDeadzone(float raw) {
@@ -33,12 +36,8 @@ void ControllerInput::update() {
     float y = hasAxis(sf::Joystick::Axis::Y) ? readAxis(sf::Joystick::Axis::Y) : 0.0f;
     direction_ = { applyDeadzone(x), applyDeadzone(y) };
 
-    float power = 0.0f;
-    if (hasAxis(sf::Joystick::Axis::R)) power = std::max(power, normalizeAxis(readAxis(sf::Joystick::Axis::R)));
-    if (hasAxis(sf::Joystick::Axis::Z)) power = std::max(power, normalizeAxis(readAxis(sf::Joystick::Axis::Z)));
-    if (hasAxis(sf::Joystick::Axis::U)) power = std::max(power, normalizeAxis(readAxis(sf::Joystick::Axis::U)));
-    if (hasAxis(sf::Joystick::Axis::V)) power = std::max(power, normalizeAxis(readAxis(sf::Joystick::Axis::V)));
-    power_ = power;
+    float power = std::sqrt(direction_.x * direction_.x + direction_.y * direction_.y);
+    power_ = std::clamp(power, 0.0f, 1.0f);
 
     bool hit = sf::Joystick::isButtonPressed(index_, 7);
     hitPressed_ = hit && !prevHit_;
