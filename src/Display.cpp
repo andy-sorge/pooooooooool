@@ -1,3 +1,4 @@
+#include "../include/Vector.hpp"
 #include <algorithm>
 #include <chrono>
 #include <memory>
