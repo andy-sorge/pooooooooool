@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio Network)
 
 set(ASIO_INCLUDE_DIR $ENV{ASIO_INCLUDE_DIR})
 
@@ -15,7 +15,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
 add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/main.cpp ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include ${ASIO_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Audio)
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Audio SFML::Network)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ASIO_STANDALONE)
 
 file(GLOB RESOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/resource/*.txt ${CMAKE_SOURCE_DIR}/resource/*.csv)

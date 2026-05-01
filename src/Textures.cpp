@@ -1,4 +1,4 @@
-#include "../include/Textures.hpp"
+#include "Textures.hpp"
 #include <SFML/Graphics/Texture.hpp>
 
 std::array<sf::Texture, 16> ballTextures = {
