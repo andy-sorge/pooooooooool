@@ -19,7 +19,7 @@ public:
         dt_ += clock_.reset();
         clock_.start();
 
-        sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
+        sf::Time between_frames = sf::seconds(1.0 / 90); // fixed framerate
 
         if (dt_ > between_frames) {
             dt_ -= between_frames;
