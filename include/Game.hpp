@@ -132,7 +132,7 @@ private:
                 auto state = state_.lock();
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
-                    if (ball.vel.magnitude() > 0.0005) {
+                    if (ball.vel.magnitude() > 0.004) {
                         state->turn = PlayerTurn::Physics;
                         break;
                     }
@@ -296,7 +296,7 @@ private:
                         cue_.reset();
                         state->turn = PlayerTurn::PlacingCueBall;
                         return;
-                case sf::Keyboard::Key::M: startMusicLeft(); startMusicRight(); break; // TODO toggle music
+                case sf::Keyboard::Key::M: startMusicLeft(); startMusicRight(); break;
                 default: break;
                 }
             }
@@ -340,7 +340,7 @@ private:
                 }
             }
             if (state->turn == PlayerTurn::PlacingCueBall) {
-                cue_->get().pos -= stickDir * 1.5;
+                cue_->get().pos -= stickDir * 1;
                 cue_->get().vel = {0,0};
                 if (controller_.hitPressed()) state->turn = PlayerTurn::Aiming;
             }
