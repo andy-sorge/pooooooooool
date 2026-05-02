@@ -109,11 +109,11 @@ private:
                 auto state = state_.lock();
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
-                    if (ball.vel.magnitude() > 0.01) {
+                    if (ball.vel.magnitude() > 0) {
                         state->turn = PlayerTurn::Physics; }
                     break;
                 }
-                std::cout << "physics" << std::endl;
+                // std::cout << "physics" << std::endl;
             }
             physics_->step();
         }
@@ -121,13 +121,13 @@ private:
 
         if (turn == PlayerTurn::Aiming) {
             // functionality can be found within the input method
-            std::cout << "aiming" << std::endl;
+            // std::cout << "aiming" << std::endl;
         }
         if (turn == PlayerTurn::None) {
-            std::cout << "turn none" << std::endl;
+            // std::cout << "turn none" << std::endl;
         }
         if (turn == PlayerTurn::PlacingCueBall) {
-            std::cout << "turn placing" << std::endl;
+            // std::cout << "turn placing" << std::endl;
             if (!cue_.has_value()) {
                 auto state = state_.lock();
                 Ball cue(Vector(200, state->logicalSpace.y/2), Vector{0, 0}, 0);
