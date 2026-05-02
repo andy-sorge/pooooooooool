@@ -17,7 +17,7 @@ public:
         clock_.reset();
     }
 
-    void step() { // bool for if the eight ball was sunk
+    bool step() { // bool for if the eight ball was sunk
         dt_ += clock_.reset();
         clock_.start();
 
@@ -62,10 +62,13 @@ public:
             for (auto ball = state->balls.begin(); ball != state->balls.end(); ) {
                 if (isPocketed(*ball, state->pockets)) {
                     if (ball->type == Ball::Type::Eight) state->turn = PlayerTurn::End;
+                    if (ball->type == Ball::Type::Cue && state->turn != PlayerTurn::End) return false;
                     ball = state->balls.erase(ball);
                 } else ++ball;
             }
         }
+
+        return true;
     }
 
     bool isPocketed(const Ball& ball, const std::vector<Vector> pockets) {
