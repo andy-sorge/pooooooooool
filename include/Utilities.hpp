@@ -17,10 +17,9 @@ enum Role {
 
 enum class PlayerTurn {
     None,
-    Player1Aiming,
-    Player1Physics,
-    Player2Aiming,
-    Player2Physics
+    PlacingCueBall,
+    Aiming,
+    Physics,
 };
 
 struct State {
@@ -35,12 +34,4 @@ struct State {
     sf::Vector2u logicalSpace;
 
     State() : role(Role::Host), displays(1), index(std::nullopt) {}
-
-    bool isAimingTurn() {
-        return turn == PlayerTurn::Player1Aiming || turn == PlayerTurn::Player2Aiming;
-    }
-
-    bool isPhysicsTurn() {
-        return turn == PlayerTurn::Player1Physics || turn == PlayerTurn::Player2Physics;
-    }
 };

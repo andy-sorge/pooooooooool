@@ -179,6 +179,8 @@ private:
         return false;
     }
 
+
+
     void input() {
         while (const std::optional event = this->window_.pollEvent()) {
             auto state = state_.lock();
@@ -188,12 +190,9 @@ private:
 
             controller_.update(event);
             if (auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
-                if (!cueBallIndex_.has_value()) { // if the state is needing to place the damn ball
-                    if (state_.lock()->turn == PlayerTurn::)
+                    if (state_.lock()->turn == PlayerTurn::PlacingCueBall);
                     // TODO: display should show a picture of the ball
                     //cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
-
-                }
             }
 
             if (auto* key = event->getIf<sf::Event::KeyPressed>()) {
