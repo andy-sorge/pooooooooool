@@ -20,6 +20,7 @@ public:
     void step() {
         dt_ += clock_.reset();
         clock_.start();
+        std::cout << dt_.asSeconds();
 
         sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
 

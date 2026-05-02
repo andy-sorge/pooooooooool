@@ -318,7 +318,8 @@ private:
                 }
             }
             if (state->turn == PlayerTurn::PlacingCueBall) {
-                cue_->get().pos -= stickDir * 4;
+                cue_->get().pos -= stickDir * 3;
+                cue_->get().vel = {0,0};
                 if (controller_.hitPressed()) state->turn = PlayerTurn::Aiming;
             }
         }
