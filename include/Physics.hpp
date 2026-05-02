@@ -14,7 +14,7 @@ public:
     }
 
     void pauseTime() {
-        clock_.stop();
+        clock_.reset();
     }
 
     void step() {
