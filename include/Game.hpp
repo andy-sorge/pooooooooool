@@ -98,35 +98,44 @@ private:
 
 
     void stateBasedActions() {
-        auto state = this->state_.lock();
+        PlayerTurn turn;
+        {
+            auto state = this->state_.lock();
+            turn = state->turn;
+        }
         // exit physics when physics have played out
-        if (state->turn == PlayerTurn::Physics) {
-            state->turn = PlayerTurn::Aiming;
-            for (const Ball& ball : state->balls) {
-                if (ball.vel.magnitude() > 0.01) {
-                    state->turn = PlayerTurn::Physics;
+        if (turn == PlayerTurn::Physics) {
+            {
+                auto state = state_.lock();
+                state->turn = PlayerTurn::Aiming;
+                for (const Ball& ball : state->balls) {
+                    if (ball.vel.magnitude() > 0.01) {
+                        state->turn = PlayerTurn::Physics; }
                     break;
                 }
+                std::cout << "physics" << std::endl;
             }
-            std::cout << "physics" << std::endl;
+            physics_->step();
         }
-        if (state->turn == PlayerTurn::Aiming) {
+
+        if (turn == PlayerTurn::Aiming) {
             // functionality can be found within the input method
             std::cout << "aiming" << std::endl;
         }
-        if (state->turn == PlayerTurn::None) {
+        if (turn == PlayerTurn::None) {
             std::cout << "turn none" << std::endl;
         }
-        if (state->turn == PlayerTurn::PlacingCueBall) {
+        if (turn == PlayerTurn::PlacingCueBall) {
             std::cout << "turn placing" << std::endl;
             if (!cue_.has_value()) {
+                auto state = state_.lock();
                 Ball cue(Vector(200, state->logicalSpace.y/2), Vector{0, 0}, 0);
                 state->balls.insert(state->balls.begin(), std::move(cue));
                 cue_ = state->balls[0];
                 display_->scale(*cue_);
             }
         }
-        if (state->turn == PlayerTurn::End) {
+        if (turn == PlayerTurn::End) {
             std::cout << "turn end" << std::endl;
         }
     }
@@ -263,7 +272,7 @@ private:
                         display_.value().scaleBalls(state->balls);
                         cue_.reset();
                         state->turn = PlayerTurn::PlacingCueBall;
-                        break;
+                        return;
                 //case sf::Keyboard::Key::M: startMusicLeft(); break; // TODO toggle music
                 default: break;
                 }
