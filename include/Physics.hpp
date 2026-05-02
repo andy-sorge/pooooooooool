@@ -62,13 +62,13 @@ public:
             for (auto ball = state->balls.begin(); ball != state->balls.end(); ) {
                 if (isPocketed(*ball, state->pockets)) {
                     if (ball->type == Ball::Type::Eight) state->turn = PlayerTurn::End;
-                    if (ball->type == Ball::Type::Cue && state->turn != PlayerTurn::End) return false;
+                    if (ball->type == Ball::Type::Cue && state->turn != PlayerTurn::End) return true;
                     ball = state->balls.erase(ball);
                 } else ++ball;
             }
         }
 
-        return true;
+        return false;
     }
 
     bool isPocketed(const Ball& ball, const std::vector<Vector> pockets) {
