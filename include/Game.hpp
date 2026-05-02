@@ -292,7 +292,7 @@ private:
                         cue_.reset();
                         state->turn = PlayerTurn::PlacingCueBall;
                         return;
-                //case sf::Keyboard::Key::M: startMusicLeft(); break; // TODO toggle music
+                case sf::Keyboard::Key::M: startMusicLeft(); startMusicRight(); break; // TODO toggle music
                 default: break;
                 }
             }
@@ -329,8 +329,9 @@ private:
                 stickDir = stickDir.normalized() * speed;
                 for (Ball& ball : state->balls) {
                     if (ball.number == 0) {
-                        ball.vel = stickDir; break;
+                        ball.vel = stickDir;
                         playCueHitBall(speed / (state->cuePower * 3000));
+                        break;
                     }
                 }
             }
