@@ -13,7 +13,7 @@
 
 class Ball : public sf::Sprite {
 public:
-    enum class Type {
+    enum class Type : uint8_t {
         Stripe,
         Solid,
         Eight,

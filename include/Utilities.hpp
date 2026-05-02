@@ -15,10 +15,12 @@ enum Role {
     Client
 };
 
-enum PlayerTurn {
+enum class PlayerTurn : uint8_t {
     None,
-    Player1,
-    Player2
+    PlacingCueBall,
+    Aiming,
+    Physics,
+    End
 };
 
 struct State {
@@ -26,9 +28,16 @@ struct State {
     std::optional<std::uint16_t> index;
     std::uint16_t displays;
 
+    PlayerTurn turn = PlayerTurn::None;
+
     std::vector<Ball> balls;
     std::vector<Vector> pockets;
     sf::Vector2u logicalSpace;
+
+    // cue (aim) state shared from host to clients so the cue animates everywhere
+    Vector cueDir{0.0, 0.0};
+    float cuePower{0.0f};
+    bool cueAiming{false};
 
     State() : role(Role::Host), displays(1), index(std::nullopt) {}
 };

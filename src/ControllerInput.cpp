@@ -27,11 +27,11 @@ ControllerInput::ControllerInput(unsigned int joystickIndex)
 
 void ControllerInput::update(const std::optional<sf::Event>& event) {
     if (!connected()) {
-        direction_ = {0.0f, 0.0f};
-        power_ = 0.0f;
+        direction_ = {0.5f, 0.5f};
+        power_ = 1.0f;
         hitPressed_ = false;
         prevHit_ = false;
-        std::cout << "not connected" << std::endl;
+        // std::cout << "not connected" << std::endl;
         return;
     }
     if (auto* joystick_move = event->getIf<sf::Event::JoystickMoved>()) {
