@@ -142,7 +142,10 @@ private:
             }
         }
         if (turn == PlayerTurn::Physics || turn == PlayerTurn::Aiming) {
-            physics_->step();
+            bool cueDied = physics_->step();
+            if (cueDied) {
+                cue_.reset();
+            }
         }
         else { physics_->pauseTime(); }
 
