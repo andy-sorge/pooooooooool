@@ -132,7 +132,7 @@ private:
                 auto state = state_.lock();
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
-                    if (ball.vel.magnitude() > 0.00001) {
+                    if (ball.vel.magnitude() > 0.0005) {
                         state->turn = PlayerTurn::Physics;
                         break;
                     }
@@ -144,6 +144,7 @@ private:
         if (turn == PlayerTurn::Physics || turn == PlayerTurn::Aiming) {
             bool cueDied = physics_->step();
             if (cueDied) {
+                std::cout << "cue died" << std::endl;
                 cue_.reset();
             }
         }
