@@ -22,6 +22,14 @@ cd ../resource # enter the correct folder so textures and audio can be loaded
 
 ## How to Play
 
+1. Open the game
+2. To host a game, select the `Host` button. To join a game, enter the host's ip and press `Join`
+3. When all players are joined, press `shift` on the host to rack the balls
+4. Place the cue ball with the joystick, and hit any button to confirm
+5. Use the left stick to aim, and any button to hit the cue ball
+5. Take turns attempting to pot your balls. When all your balls are potted, sink the 8 ball to win.
+6. Brag to all your friends
+7. Donate all your money to us because this is the greatest game ever
 
 ## Credits:
 - Game design: Oliver Ehlers
