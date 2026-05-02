@@ -46,7 +46,7 @@ std::deque<sf::Sound> sound_queue;
 
 void playBallHitBall(float volume) {
     // float pitch_variation = sf::Randomizer::Random(0.9f, 1.1f);
-    std::cout << "playBallHit " << volume << std::endl;
+    // std::cout << "playBallHit " << volume << std::endl;
     const auto& sound_used = random_sound(ball_hit_sounds);
 
     // sound_queue.emplace_back(sound_used);
