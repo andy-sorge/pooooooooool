@@ -114,7 +114,10 @@ private:
                     break;
                 }
                 // std::cout << "physics" << std::endl;
+                turn = state->turn;
             }
+        }
+        if (turn == PlayerTurn::Physics || turn == PlayerTurn::Aiming) {
             physics_->step();
         }
         else { physics_->pauseTime(); }
