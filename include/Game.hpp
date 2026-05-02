@@ -7,6 +7,7 @@
 #include <stdexcept>
 //#include <variant>
 
+#include "Audio.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "SFML/Network/Packet.hpp"
 
@@ -132,8 +133,9 @@ private:
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
                     if (ball.vel.magnitude() > 0.00001) {
-                        state->turn = PlayerTurn::Physics; }
-                    break;
+                        state->turn = PlayerTurn::Physics;
+                        break;
+                    }
                 }
                 // std::cout << "physics" << std::endl;
                 turn = state->turn;
@@ -145,7 +147,10 @@ private:
         else { physics_->pauseTime(); }
 
         if (turn == PlayerTurn::Aiming) {
-            // functionality can be found within the input method
+            if (!cue_.has_value()) {
+                state_.lock()->turn = PlayerTurn::PlacingCueBall;
+            }
+            // most functionality can be found within the input method
             // std::cout << "aiming" << std::endl;
         }
         if (turn == PlayerTurn::None) {
@@ -323,7 +328,10 @@ private:
                 float speed = 3000.0f * std::max(0.1f, state->cuePower);
                 stickDir = stickDir.normalized() * speed;
                 for (Ball& ball : state->balls) {
-                    if (ball.number == 0) { ball.vel = stickDir; break; }
+                    if (ball.number == 0) {
+                        ball.vel = stickDir; break;
+                        playCueHitBall(speed / (state->cuePower * 3000));
+                    }
                 }
             }
             if (state->turn == PlayerTurn::PlacingCueBall) {
