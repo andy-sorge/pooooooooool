@@ -109,7 +109,7 @@ private:
                 auto state = state_.lock();
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
-                    if (ball.vel.magnitude() > 0.0001) {
+                    if (ball.vel.magnitude() > 0.00001) {
                         state->turn = PlayerTurn::Physics; }
                     break;
                 }
