@@ -42,9 +42,9 @@ public:
 
         if (result.role == Role::Host) {
             host();
+
             auto state = state_.lock();
             state->index = 0;
-            std::cout << "help me\n";
             create_arranged_balls(state->balls);
             display.scaleBalls(state->balls);
         } else client(result.host);
@@ -59,12 +59,13 @@ public:
             this->state_.lock()->turn = PlayerTurn::PlacingCueBall;
         }
 
+        physics_->pauseTime();
         running_ = true;
         while(running_) {
             if (!window_.isOpen()) break;
 
             display.render(true);
-            physics.step();
+            stateBasedActions();
 
             if (result.role == Role::Host) {
                 auto elapsed = clock.getElapsedTime();
