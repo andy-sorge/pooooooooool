@@ -41,4 +41,4 @@ cd ../resource # enter the correct folder so textures and audio can be loaded
   - Vocals from Ryden & production/recording done by Oliver
 
 ## Class:
-Lab section 13
+Lab section 12
