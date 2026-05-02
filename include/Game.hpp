@@ -53,7 +53,7 @@ public:
         computePocketCenters();
 
         sf::Clock clock;
-        const sf::Time interval = sf::milliseconds(1000); // 20hz, tune as needed
+        const sf::Time interval = sf::milliseconds(100); // 10hz, tune as needed
         sf::Time last = sf::Time::Zero;
 
         {

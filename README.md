@@ -8,7 +8,7 @@ Demo [link](https://youtu.be/oOVLxR9ZIVk)
 Well now you too can third wheel a two player game by providing the third laptop
 for a game of Pooooooooool:
 
-![A Game of Pooooooooool being played](https://cff2.earth.com/uploads/2023/10/10140944/stick-insect_phasmid_1medium.jpg)
+![A Game of Pooooooooool being played](resource/graphics/other/gh-page-image.jpeg)
 
 ## Installation instructions
 # Building from source:
