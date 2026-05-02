@@ -146,7 +146,10 @@ private:
         else { physics_->pauseTime(); }
 
         if (turn == PlayerTurn::Aiming) {
-            // functionality can be found within the input method
+            if (!cue_.has_value()) {
+                state_.lock()->turn = PlayerTurn::PlacingCueBall;
+            }
+            // most functionality can be found within the input method
             // std::cout << "aiming" << std::endl;
         }
         if (turn == PlayerTurn::None) {
