@@ -39,5 +39,8 @@ struct State {
     float cuePower{0.0f};
     bool cueAiming{false};
 
+    // ball placement state
+    Vector ballPlacementPos{0.0, 0.0};
+
     State() : role(Role::Host), displays(1), index(std::nullopt) {}
 };

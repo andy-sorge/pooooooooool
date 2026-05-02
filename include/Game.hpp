@@ -60,24 +60,25 @@ public:
 
         while(window_.isOpen()) {
             display.render();
-            if (state_.lock()->turn == PlayerTurn::Physics) physics.step();
-            // physics.step();
+            physics.step();
 
-            auto state = this->state_.lock();
-            // exit physics when physics have played out
-            if (state->turn == PlayerTurn::Physics) {
-                state->turn = PlayerTurn::Aiming;
-                for (const Ball& ball : state->balls) {
-                    if (ball.vel.magnitude() > 0) {
-                        state->turn = PlayerTurn::Physics;
-                        break;
+            {
+                auto state = this->state_.lock();
+                // exit physics when physics have played out
+                if (state->turn == PlayerTurn::Physics) {
+                    state->turn = PlayerTurn::Aiming;
+                    for (const Ball& ball : state->balls) {
+                        if (ball.vel.magnitude() > 0) {
+                            state->turn = PlayerTurn::Physics;
+                            break;
+                        }
                     }
+                    std::cout << "physics\n";
                 }
-                std::cout << "physics\n";
-            }
-            if (state->turn == PlayerTurn::Aiming) {
-                // TODO
-                std::cout << "aiming\n";
+                if (state->turn == PlayerTurn::Aiming) {
+                    // TODO
+                    std::cout << "aiming\n";
+                }
             }
 
             if (result.role == Role::Host) {
