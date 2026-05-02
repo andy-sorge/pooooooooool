@@ -12,6 +12,7 @@ sf::Texture& getTableTop(TableSegment segment);
 sf::Texture& getTableBorder(TableSegment segment);
 
 sf::Texture& getUiCrown();
+sf::Texture& getUiBrokenStick();
 sf::Texture& getUiSolids();
 sf::Texture& getUiStripes();
 

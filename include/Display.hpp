@@ -36,7 +36,7 @@ class Display {
 public:
     Display(Synchronized<State>& state, sf::RenderWindow& window);
 
-    void render();
+    void render(bool display);
 
     void scale(sf::Sprite& sprite) {
         sprite.setScale({ scale_, scale_ });
