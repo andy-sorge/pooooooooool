@@ -31,6 +31,16 @@ std::array<sf::SoundBuffer, 1> ball_hit_bumper_sounds = {
     sf::SoundBuffer("sfx/ball-collision/0.wav"),
 };
 
+std::array<sf::SoundBuffer, 7> cue_hit_ball_sounds = {
+    sf::SoundBuffer("sfx/cue-hit/0.wav"),
+    sf::SoundBuffer("sfx/cue-hit/1.wav"),
+    sf::SoundBuffer("sfx/cue-hit/2.wav"),
+    sf::SoundBuffer("sfx/cue-hit/3.wav"),
+    sf::SoundBuffer("sfx/cue-hit/4.wav"),
+    sf::SoundBuffer("sfx/cue-hit/5.wav"),
+    sf::SoundBuffer("sfx/cue-hit/6.wav"),
+};
+
 // rand stuff yay
 std::default_random_engine generator;
 template <size_t l>
@@ -66,7 +76,12 @@ void playBallHitBall(float volume) {
 }
 
 void playCueHitBall(float volume) {
-    // TODO
+    const auto& sound_used = random_sound(cue_hit_ball_sounds);
+    sounds[sound_index % sounds.max_size()].emplace(sf::Sound(sound_used));
+    auto& sound = sounds[sound_index % sounds.max_size()];
+    sound->setVolume(volume);
+    sound->play();
+    sound_index += 1;
 }
 
 void playBallHitCushions(float volume) {
