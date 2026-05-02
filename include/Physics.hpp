@@ -11,7 +11,7 @@ class Physics {
 public:
     Physics(Synchronized<State>& state) : state_(state) {}
 
-    void step() {
+    void step() { // bool for if the eight ball was sunk
         dt_ += clock_.reset();
         clock_.start();
 
@@ -52,9 +52,23 @@ public:
                     if ((ball2.pos - ball1.pos).magnitude() < ball1.radius + ball2.radius) ball1.hit(ball2, between_frames.asSeconds());
                 }
             }
+
+            for (auto ball = state->balls.begin(); ball != state->balls.end(); ) {
+                if (isPocketed(*ball, state->pockets)) {
+                    if (ball->type == Ball::Type::Eight) state->turn = PlayerTurn::End;
+                    ball = state->balls.erase(ball);
+                } else ++ball;
+            }
         }
-        
-        
+    }
+
+    bool isPocketed(const Ball& ball, const std::vector<Vector> pockets) {
+        for (const auto& pocket : pockets) {
+            const auto dist = (ball.pos - pocket).magnitude();
+            if (dist <= (PoolConstants::pocketRadius + ball.radius)) return true;
+        }
+
+        return false;
     }
 private:
     sf::Clock clock_;

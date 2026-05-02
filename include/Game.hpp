@@ -24,7 +24,7 @@
 
 class Game {
 public:
-    Game() : window_(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close) {}
+    Game() : window_(sf::VideoMode({800, 600}), "POOOOOOOOOOL", sf::Style::Titlebar | sf::Style::Close)  {}
 
     void run() {
         setupTextures();
@@ -49,28 +49,33 @@ public:
             display.scaleBalls(state->balls);
         } else client(result.host);
 
+        computePocketCenters();
 
         sf::Clock clock;
-        const sf::Time interval = sf::milliseconds(100); // 20hz, tune as needed
+        const sf::Time interval = sf::milliseconds(1000); // 20hz, tune as needed
         sf::Time last = sf::Time::Zero;
 
         {
             this->state_.lock()->turn = PlayerTurn::PlacingCueBall;
         }
 
-        while(window_.isOpen()) {
-            display.render();
+        running_ = true;
+        while(running_) {
+            if (!window_.isOpen()) break;
+
+            display.render(true);
             physics.step();
 
             if (result.role == Role::Host) {
                 auto elapsed = clock.getElapsedTime();
                 if (elapsed - last >= interval) {
                     auto state = state_.lock();
-                    server_->send(package(state->balls));
-                    // also send cue state
+                    server_->send(package(state->balls)); // also send cue state
                     server_->send(package(state->cueDir, state->cuePower, state->cueAiming));
-                    // also send real gamer state
-                    server_->send(package(state->turn));
+                    server_->send(package(state->turn)); // also send real gamer state
+
+                    if (state->turn == PlayerTurn::End) break;
+
                     last = elapsed;
                 }
             }
@@ -80,6 +85,21 @@ public:
 
         if (server_) server_->stop();
         if (client_) client_->stop();
+
+        bool win = true;
+        {
+            auto state = state_.lock();
+
+            if (state->turn != PlayerTurn::End) return;
+            for (auto ball = state->balls.begin(); ball != state->balls.end(); ) {
+                if (ball->type != Ball::Type::Cue) {
+                    win = false;
+                    break;
+                } else ++ball;
+            }
+        }
+
+        end(win);
     }
 private:
     Synchronized<State> state_; // game state, ball positions, role, etc.
@@ -91,6 +111,7 @@ private:
     ControllerInput controller_;
 
     std::optional<std::reference_wrapper<Ball>> cue_;
+    std::atomic_bool running_ = false;
 
     std::shared_ptr<PoolServer> server_;
     std::shared_ptr<PoolClient> client_;
@@ -107,6 +128,7 @@ private:
                 auto state = state_.lock();
                 _connection.push(package(++state->displays));
             }
+            computePocketCenters();
             if (display_.has_value()) display_.value().update();
         });
 
@@ -138,15 +160,14 @@ private:
                 interpret(packet, state->displays);
                 if (!state->index.has_value()) state->index = state->displays - 1;
             }
+            computePocketCenters();
             if (display_.has_value()) display_.value().update();
             else std::cerr << "display not ready!";
         });
-
-        client_->registerHandle(PacketType::Cue, [this](sf::Packet& packet) {   
+        client_->registerHandle(PacketType::Cue, [this](sf::Packet& packet) {
             auto state = state_.lock();
             interpret(packet, state->cueDir, state->cuePower, state->cueAiming);
         });
-
         client_->registerHandle(PacketType::PlayerTurn, [this](sf::Packet& packet) {
             auto state = state_.lock();
             interpret(packet, state->turn);
@@ -187,18 +208,6 @@ private:
             state->pockets.push_back(Vector{0.0 + offset, 670});
         }
     }
-
-    bool isPocketed(const Ball& ball) {
-        auto state = state_.lock();
-        for (const auto& pocket : state->pockets) {
-            const auto dist = (ball.pos - pocket).magnitude();
-            if (dist <= (PoolConstants::pocketRadius + ball.radius)) return true;
-        }
-
-        return false;
-    }
-
-
 
     void input() {
         while (const std::optional event = this->window_.pollEvent()) {
@@ -259,6 +268,51 @@ private:
                     if (ball.number == 0) { ball.vel = shotDir; break; }
                 }
             }
+        }
+    }
+
+    void end(bool win) {
+        window_.setFramerateLimit(60);
+
+        sf::Font font;
+        if (font.openFromFile("Roboto-Regular.ttf")) std::cerr << "Failed to load Roboto-Regular.ttf for menu\n";
+
+        sf::Sprite graphic(win ? getUiCrown() : getUiBrokenStick());
+        graphic.setScale({0.8, 0.8});
+
+        {
+            auto bounds = graphic.getLocalBounds();
+            graphic.setOrigin({ bounds.size.x / 2.f, bounds.size.y / 2.f });
+        }
+
+        std::string message = win ? "YOU WIN" : "YOU LOSE";
+        sf::Color background = win ? sf::Color(20, 120, 20) : sf::Color(120, 20, 20);
+
+        sf::Text title(font, message, 48);
+        title.setFillColor(sf::Color::White);
+        title.setOutlineColor(sf::Color::Black);
+        title.setOutlineThickness(5.0);
+        title.setCharacterSize(150);
+
+        {
+            auto bounds = title.getLocalBounds();
+            title.setOrigin({ bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f });
+        }
+
+        graphic.setPosition({ window_.getSize().x / 2.f, window_.getSize().y / 2.f + 60 });
+        title.setPosition({ window_.getSize().x / 2.f, window_.getSize().y / 2.f - 500 });
+
+        while (window_.isOpen()) {
+            display_->render(false);
+
+            while (const std::optional event = this->window_.pollEvent()) {
+                controller_.update(event);
+                if (event->is<sf::Event::KeyPressed>() || controller_.hitPressed()) window_.close();
+            }
+
+            window_.draw(graphic);
+            window_.draw(title);
+            window_.display();
         }
     }
 };

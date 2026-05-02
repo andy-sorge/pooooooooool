@@ -7,6 +7,7 @@
 
 // UI
 sf::Texture uiCrown("graphics/other/crown.png");
+sf::Texture uiBrokenStick("graphics/other/broken-stick.png");
 sf::Texture uiSolids("graphics/other/solids.png");
 sf::Texture uiStripes("graphics/other/stripes.png");
 
@@ -47,6 +48,7 @@ std::array<sf::Texture, 3> tableBorders = {
 
 void setupTextures() {
     uiCrown.setSmooth(true);
+    uiBrokenStick.setSmooth(true);
     uiSolids.setSmooth(true);
     uiStripes.setSmooth(true);
     cue.setSmooth(true);
@@ -71,6 +73,9 @@ sf::Texture& getTableBorder(TableSegment segment) {
 
 sf::Texture& getUiCrown() {
     return uiCrown;
+}
+sf::Texture& getUiBrokenStick() {
+    return uiBrokenStick;
 }
 sf::Texture& getUiSolids() {
     return uiSolids;

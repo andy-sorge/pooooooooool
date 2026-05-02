@@ -69,7 +69,7 @@ void Display::drawBall(Ball& ball) {
     this->window_.draw(ball);
 }
 
-void Display::render() {
+void Display::render(bool display) {
     sf::Clock clock;
     sf::Time dt = sf::Time::Zero;
 
@@ -84,55 +84,36 @@ void Display::render() {
     aimPower_ = state->cuePower;
     aiming_ = state->cueAiming;
 
+    for (Ball& ball: state->balls) this->drawBall(ball);
 
-    // for (const auto& pocket : pocketCenters()) {
-    //     sf::CircleShape circle(kPocketRadius * this->scale_);
-    //     circle.setFillColor(sf::Color::Transparent);
-    //     circle.setOutlineColor(sf::Color::Red);
-    //     circle.setOutlineThickness(3.0f);
-    //     circle.setOrigin({ kPocketRadius * this->scale_, kPocketRadius * this->scale_ });
-    //     circle.setPosition({
-    //         ((float)pocket.x + this->tableOffset_.x) * this->scale_ + this->renderedOffset_.x,
-    //         ((float)pocket.y + this->tableOffset_.y) * this->scale_ + this->renderedOffset_.y
-    //     });
-    //     this->window_.draw(circle);
-    // }
-
-    // physics
-    //
-    // clients draw balls
-    
-        for (Ball& ball: state->balls) this->drawBall(ball);
-        
-        if (state->turn == PlayerTurn::Aiming && aiming_ && cueTexture_.getSize().x > 0) {
-            Vector cuePos;
-            bool foundCue = false;
-            for (const Ball& ball : state->balls) {
-                if (ball.number == 0) {
-                    cuePos = ball.pos;
-                    foundCue = true;
-                    break;
-                }
-            }
-            if (foundCue) {
-                Vector aimVec{aimDir_.x, aimDir_.y};
-                if (aimVec.magnitude() > 0.05f) {
-                    float angle = (std::atan2(aimVec.y, aimVec.x) * 180.0f / 3.14159265f) - 90.0f;
-                    float pullback = 120.0f * aimPower_;
-                    Vector offset = aimVec.normalized() * pullback;
-                    sf::Vector2f screenPos{
-                        static_cast<float>((static_cast<float>(cuePos.x) + this->tableOffset_.x + offset.x) * this->scale_ + this->renderedOffset_.x),
-                        static_cast<float>((static_cast<float>(cuePos.y) + this->tableOffset_.y + offset.y) * this->scale_ + this->renderedOffset_.y)
-                    };
-                    cueSprite_.setPosition(screenPos);
-                    cueSprite_.setRotation(sf::degrees(angle));
-                    this->window_.draw(cueSprite_);
-                }
+    if (state->turn == PlayerTurn::Aiming && aiming_ && cueTexture_.getSize().x > 0) {
+        Vector cuePos;
+        bool foundCue = false;
+        for (const Ball& ball : state->balls) {
+            if (ball.number == 0) {
+                cuePos = ball.pos;
+                foundCue = true;
+                break;
             }
         }
-    
+        if (foundCue) {
+            Vector aimVec{aimDir_.x, aimDir_.y};
+            if (aimVec.magnitude() > 0.05f) {
+                float angle = (std::atan2(aimVec.y, aimVec.x) * 180.0f / 3.14159265f) - 90.0f;
+                float pullback = 120.0f * aimPower_;
+                Vector offset = aimVec.normalized() * pullback;
+                sf::Vector2f screenPos{
+                    static_cast<float>((static_cast<float>(cuePos.x) + this->tableOffset_.x + offset.x) * this->scale_ + this->renderedOffset_.x),
+                    static_cast<float>((static_cast<float>(cuePos.y) + this->tableOffset_.y + offset.y) * this->scale_ + this->renderedOffset_.y)
+                };
+                cueSprite_.setPosition(screenPos);
+                cueSprite_.setRotation(sf::degrees(angle));
+                this->window_.draw(cueSprite_);
+            }
+        }
+    }
 
-    window_.display();
+    if (display) window_.display();
 }
 
 // calculations
