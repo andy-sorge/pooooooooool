@@ -3,6 +3,8 @@
 You've heard of pool, but don't you wish the game was longer?
 No, it already takes long enough to play. I mean a *truly* longer game of pool.
 
+Demo [link](https://youtu.be/oOVLxR9ZIVk)
+
 Well now you too can third wheel a two player game by providing the third laptop
 for a game of Pooooooooool:
 
