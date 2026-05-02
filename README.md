@@ -8,11 +8,6 @@ for a game of Pooooooooool:
 
 ![A Game of Pooooooooool being played](https://cff2.earth.com/uploads/2023/10/10140944/stick-insect_phasmid_1medium.jpg)
 
-But if you don't have any friends, don't worry!
-Pooooooooool can also be played across multiple monitors locally
-
-![Pooooooooool played at home](https://cff2.earth.com/uploads/2023/10/10140944/stick-insect_phasmid_1medium.jpg)
-
 ## Installation instructions
 # Building from source:
 ```shell
@@ -25,6 +20,9 @@ cd ../resource # enter the correct folder so textures and audio can be loaded
 ../build/pooooooooool # actually run the game
 ```
 
+## How to Play
+
+
 ## Credits:
 - Game design: Oliver Ehlers
 - Networking: Ryden Handsaker
@@ -33,3 +31,6 @@ cd ../resource # enter the correct folder so textures and audio can be loaded
 - Sound: Oliver Ehlers
 - Music: Fluffing a Duck by Kevin Macleod
   - Vocals from Ryden & production/recording done by Oliver
+
+## Class:
+Lab section 13

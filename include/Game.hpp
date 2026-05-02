@@ -60,7 +60,23 @@ public:
 
         while(window_.isOpen()) {
             display.render();
+            // if (state_.lock()->turn == PlayerTurn::Physics) physics.step();
             physics.step();
+
+            auto state = this->state_.lock();
+            // exit physics when physics have played out
+            if (state->turn == PlayerTurn::Physics) {
+                state->turn = PlayerTurn::Aiming;
+                for (const Ball& ball : state->balls) {
+                    if (ball.vel.magnitude() > 0) {
+                        state->turn = PlayerTurn::Physics;
+                        break;
+                    }
+                }
+            }
+            if (state->turn == PlayerTurn::Aiming) {
+                // TODO
+            }
 
             if (result.role == Role::Host) {
                 auto elapsed = clock.getElapsedTime();
@@ -106,6 +122,7 @@ private:
             {
                 auto state = state_.lock();
                 _connection.push(package(++state->displays));
+                // TODO: reloads balls to be farther right
             }
             if (display_.has_value()) display_.value().update();
         });
@@ -252,7 +269,8 @@ private:
             state->cuePower = std::clamp(controller_.power(), 0.0f, 1.0f);
             state->cueAiming = shotDir.magnitude() > 0.05f;
 
-            if (controller_.hitPressed() && shotDir.magnitude() > 0.05f) {
+            if (state->turn == PlayerTurn::Aiming && controller_.hitPressed() && shotDir.magnitude() > 0.05f) {
+                state->turn = PlayerTurn::Physics;
                 float speed = 3000.0f * std::max(0.1f, state->cuePower);
                 shotDir = shotDir.normalized() * speed;
                 for (Ball& ball : state->balls) {
