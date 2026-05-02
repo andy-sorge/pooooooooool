@@ -73,9 +73,11 @@ public:
                         break;
                     }
                 }
+                std::cout << "physics\n";
             }
             if (state->turn == PlayerTurn::Aiming) {
                 // TODO
+                std::cout << "aiming\n";
             }
 
             if (result.role == Role::Host) {
