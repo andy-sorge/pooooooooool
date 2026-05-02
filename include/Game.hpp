@@ -187,11 +187,12 @@ private:
                 this->window_.close();
 
             controller_.update(event);
-            if (auto* motion = event->getIf<sf::Event::MouseMoved>()) {
+            if (auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (!cueBallIndex_.has_value()) { // if the state is needing to place the damn ball
-                    motion->position.x;
-                    // cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
-                    // really we should show a picture of the ball and then only actually put it down when you click...
+                    if (state_.lock()->turn == PlayerTurn::)
+                    // TODO: display should show a picture of the ball
+                    //cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
+
                 }
             }
 

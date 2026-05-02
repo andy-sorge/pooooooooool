@@ -15,10 +15,12 @@ enum Role {
     Client
 };
 
-enum PlayerTurn {
+enum class PlayerTurn {
     None,
-    Player1,
-    Player2
+    Player1Aiming,
+    Player1Physics,
+    Player2Aiming,
+    Player2Physics
 };
 
 struct State {
@@ -26,9 +28,19 @@ struct State {
     std::optional<std::uint16_t> index;
     std::uint16_t displays;
 
+    PlayerTurn turn;
+
     std::vector<Ball> balls;
     std::vector<Vector> pockets;
     sf::Vector2u logicalSpace;
 
     State() : role(Role::Host), displays(1), index(std::nullopt) {}
+
+    bool isAimingTurn() {
+        return turn == PlayerTurn::Player1Aiming || turn == PlayerTurn::Player2Aiming;
+    }
+
+    bool isPhysicsTurn() {
+        return turn == PlayerTurn::Player1Physics || turn == PlayerTurn::Player2Physics;
+    }
 };
