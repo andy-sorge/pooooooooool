@@ -7,6 +7,7 @@
 #include <stdexcept>
 //#include <variant>
 
+#include "Audio.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "SFML/Network/Packet.hpp"
 
@@ -327,7 +328,10 @@ private:
                 float speed = 3000.0f * std::max(0.1f, state->cuePower);
                 stickDir = stickDir.normalized() * speed;
                 for (Ball& ball : state->balls) {
-                    if (ball.number == 0) { ball.vel = stickDir; break; }
+                    if (ball.number == 0) {
+                        ball.vel = stickDir; break;
+                        playCueHitBall(speed / (state->cuePower * 3000));
+                    }
                 }
             }
             if (state->turn == PlayerTurn::PlacingCueBall) {
