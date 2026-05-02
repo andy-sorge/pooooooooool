@@ -60,8 +60,8 @@ public:
 
         while(window_.isOpen()) {
             display.render();
-            // if (state_.lock()->turn == PlayerTurn::Physics) physics.step();
-            physics.step();
+            if (state_.lock()->turn == PlayerTurn::Physics) physics.step();
+            // physics.step();
 
             auto state = this->state_.lock();
             // exit physics when physics have played out
