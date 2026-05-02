@@ -117,6 +117,7 @@ private:
             }
             physics_->step();
         }
+        else { physics_->pauseTime(); }
 
         if (turn == PlayerTurn::Aiming) {
             // functionality can be found within the input method
@@ -292,7 +293,7 @@ private:
 
                     sf::Vector2i mouse = sf::Mouse::getPosition();
                     Vector mouse_pos = Vector(mouse.x, mouse.y);
-                    cue.vel += (cue.pos - Vector(mouse.x, mouse.y)) * 10;
+                    cue.vel += (cue.pos - Vector(mouse.x, mouse.y)) * 14;
                 }
             }
         }
@@ -313,7 +314,7 @@ private:
                 }
             }
             if (state->turn == PlayerTurn::PlacingCueBall) {
-                cue_->get().pos += stickDir;
+                cue_->get().pos -= stickDir * 4;
                 if (controller_.hitPressed()) state->turn = PlayerTurn::Aiming;
             }
         }

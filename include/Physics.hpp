@@ -11,6 +11,10 @@ class Physics {
 public:
     Physics(Synchronized<State>& state) : state_(state) {}
 
+    void pauseTime() {
+        clock_.stop();
+    }
+
     void step() {
         dt_ += clock_.reset();
         clock_.start();
