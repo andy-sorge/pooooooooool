@@ -97,7 +97,6 @@ void Ball::hit(Ball& rhs, double dt) {
     rhs.vel = VB + rhs.vel;
     this->vel = VA + this->vel;
 
-    // TODO: I think doing it like this means I don't even need dt
     this->tick_physics(-time_of_impact);
     rhs.tick_physics(-time_of_impact);
 

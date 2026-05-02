@@ -9,13 +9,19 @@
 
 class Physics {
 public:
-    Physics(Synchronized<State>& state) : state_(state) {}
+    Physics(Synchronized<State>& state) : state_(state) {
+        pauseTime();
+    }
+
+    void pauseTime() {
+        clock_.reset();
+    }
 
     void step() { // bool for if the eight ball was sunk
         dt_ += clock_.reset();
         clock_.start();
 
-        sf::Time between_frames = sf::seconds(1.0 / 144); // fixed framerate
+        sf::Time between_frames = sf::seconds(1.0 / 60); // fixed framerate
 
         if (dt_ > between_frames) {
             dt_ -= between_frames;

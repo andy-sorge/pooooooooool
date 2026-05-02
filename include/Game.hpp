@@ -103,7 +103,6 @@ public:
     }
 private:
     Synchronized<State> state_; // game state, ball positions, role, etc.
-    std::optional<uint16_t> cueBallIndex_; // cue ball index for convenience (none when the cue is destroyed)
 
     sf::RenderWindow window_;
     std::optional<Display> display_;
@@ -118,6 +117,55 @@ private:
 
     std::queue<sf::Packet> _connection;
 
+
+    void stateBasedActions() {
+        PlayerTurn turn;
+        {
+            auto state = this->state_.lock();
+            turn = state->turn;
+        }
+        // exit physics when physics have played out
+        if (turn == PlayerTurn::Physics) {
+            {
+                auto state = state_.lock();
+                state->turn = PlayerTurn::Aiming;
+                for (const Ball& ball : state->balls) {
+                    if (ball.vel.magnitude() > 0.00001) {
+                        state->turn = PlayerTurn::Physics; }
+                    break;
+                }
+                // std::cout << "physics" << std::endl;
+                turn = state->turn;
+            }
+        }
+        if (turn == PlayerTurn::Physics || turn == PlayerTurn::Aiming) {
+            physics_->step();
+        }
+        else { physics_->pauseTime(); }
+
+        if (turn == PlayerTurn::Aiming) {
+            // functionality can be found within the input method
+            // std::cout << "aiming" << std::endl;
+        }
+        if (turn == PlayerTurn::None) {
+            // std::cout << "turn none" << std::endl;
+        }
+        if (turn == PlayerTurn::PlacingCueBall) {
+            // std::cout << "turn placing" << std::endl;
+            if (!cue_.has_value()) {
+                auto state = state_.lock();
+                Ball cue(Vector(200, state->logicalSpace.y/2), Vector{0, 0}, 0);
+                state->balls.insert(state->balls.begin(), std::move(cue));
+                cue_ = state->balls[0];
+                display_->scale(*cue_);
+            }
+        }
+        if (turn == PlayerTurn::End) {
+            std::cout << "turn end" << std::endl;
+        }
+    }
+
+
     void host() {
         std::cout << "i am a server!" << std::endl;
         server_ = std::make_unique<PoolServer>(PoolConstants::port);
@@ -127,6 +175,7 @@ private:
             {
                 auto state = state_.lock();
                 _connection.push(package(++state->displays));
+                // TODO: reloads balls to be farther right
             }
             computePocketCenters();
             if (display_.has_value()) display_.value().update();
@@ -228,8 +277,15 @@ private:
                 if (state->role != Role::Host) continue;
 
                 switch (key->code) {
-                case sf::Keyboard::Key::Space: display_.value().scale(state->balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0)); break;
-                case sf::Keyboard::Key::LShift: create_arranged_balls(state->balls); display_.value().scaleBalls(state->balls); break;
+                // case sf::Keyboard::Key::Space:
+                //         display_.value().scale(state->balls.emplace_back(Vector{100, 491.0}, Vector{2800, -70}, 0));
+                //         break;
+                case sf::Keyboard::Key::LShift:
+                        create_arranged_balls(state->balls);
+                        display_.value().scaleBalls(state->balls);
+                        cue_.reset();
+                        state->turn = PlayerTurn::PlacingCueBall;
+                        return;
                 //case sf::Keyboard::Key::M: startMusicLeft(); break; // TODO toggle music
                 default: break;
                 }
@@ -249,24 +305,30 @@ private:
 
                     sf::Vector2i mouse = sf::Mouse::getPosition();
                     Vector mouse_pos = Vector(mouse.x, mouse.y);
-                    cue.vel += (cue.pos - Vector(mouse.x, mouse.y)) * 10;
+                    cue.vel += (cue.pos - Vector(mouse.x, mouse.y)) * 14;
                 }
             }
         }
         auto state = state_.lock();
         if (state->role == Role::Host) {
             sf::Vector2f dir = controller_.direction();
-            Vector shotDir{-dir.x, -dir.y};
+            Vector stickDir{-dir.x, -dir.y};
             state->cueDir = Vector{static_cast<unit_t>(dir.x), static_cast<unit_t>(dir.y)};
             state->cuePower = std::clamp(controller_.power(), 0.0f, 1.0f);
-            state->cueAiming = shotDir.magnitude() > 0.05f;
+            state->cueAiming = stickDir.magnitude() > 0.05f;
 
-            if (controller_.hitPressed() && shotDir.magnitude() > 0.05f) {
+            if (state->turn == PlayerTurn::Aiming && controller_.hitPressed() && stickDir.magnitude() > 0.05f) {
+                state->turn = PlayerTurn::Physics;
                 float speed = 3000.0f * std::max(0.1f, state->cuePower);
-                shotDir = shotDir.normalized() * speed;
+                stickDir = stickDir.normalized() * speed;
                 for (Ball& ball : state->balls) {
-                    if (ball.number == 0) { ball.vel = shotDir; break; }
+                    if (ball.number == 0) { ball.vel = stickDir; break; }
                 }
+            }
+            if (state->turn == PlayerTurn::PlacingCueBall) {
+                cue_->get().pos -= stickDir * 3;
+                cue_->get().vel = {0,0};
+                if (controller_.hitPressed()) state->turn = PlayerTurn::Aiming;
             }
         }
     }
