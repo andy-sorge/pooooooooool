@@ -10,7 +10,7 @@
 class Physics {
 public:
     Physics(Synchronized<State>& state) : state_(state) {
-        clock_.stop();
+        pauseTime();
     }
 
     void pauseTime() {

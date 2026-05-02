@@ -58,6 +58,7 @@ public:
             this->state_.lock()->turn = PlayerTurn::PlacingCueBall;
         }
 
+        physics_->pauseTime(); // reset time before we are in physics state
         while(window_.isOpen()) {
             display.render();
             stateBasedActions();
