@@ -44,9 +44,7 @@ void ControllerInput::update(const std::optional<sf::Event>& event) {
     }
     hitPressed_ = false;
     if (auto* button_press = event->getIf<sf::Event::JoystickButtonPressed>()) {
-        if (button_press->button == 7) {
-            hitPressed_ = true;
-        }
+        hitPressed_ = true;
     }
 
     float power = std::sqrt(direction_.x * direction_.x + direction_.y * direction_.y);

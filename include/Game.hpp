@@ -132,8 +132,9 @@ private:
                 state->turn = PlayerTurn::Aiming;
                 for (const Ball& ball : state->balls) {
                     if (ball.vel.magnitude() > 0.00001) {
-                        state->turn = PlayerTurn::Physics; }
-                    break;
+                        state->turn = PlayerTurn::Physics;
+                        break;
+                    }
                 }
                 // std::cout << "physics" << std::endl;
                 turn = state->turn;
