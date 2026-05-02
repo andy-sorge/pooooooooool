@@ -15,11 +15,12 @@ enum Role {
     Client
 };
 
-enum class PlayerTurn {
+enum class PlayerTurn : uint8_t {
     None,
     PlacingCueBall,
     Aiming,
     Physics,
+    End
 };
 
 struct State {
@@ -27,7 +28,7 @@ struct State {
     std::optional<std::uint16_t> index;
     std::uint16_t displays;
 
-    PlayerTurn turn;
+    PlayerTurn turn = PlayerTurn::None;
 
     std::vector<Ball> balls;
     std::vector<Vector> pockets;

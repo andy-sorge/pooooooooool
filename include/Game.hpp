@@ -54,6 +54,10 @@ public:
         const sf::Time interval = sf::milliseconds(100); // 20hz, tune as needed
         sf::Time last = sf::Time::Zero;
 
+        {
+            this->state_.lock()->turn = PlayerTurn::PlacingCueBall;
+        }
+
         while(window_.isOpen()) {
             display.render();
             physics.step();
@@ -65,6 +69,8 @@ public:
                     server_->send(package(state->balls));
                     // also send cue state
                     server_->send(package(state->cueDir, state->cuePower, state->cueAiming));
+                    // also send real gamer state
+                    server_->send(package(state->turn));
                     last = elapsed;
                 }
             }
@@ -139,6 +145,11 @@ private:
         client_->registerHandle(PacketType::Cue, [this](sf::Packet& packet) {   
             auto state = state_.lock();
             interpret(packet, state->cueDir, state->cuePower, state->cueAiming);
+        });
+
+        client_->registerHandle(PacketType::PlayerTurn, [this](sf::Packet& packet) {
+            auto state = state_.lock();
+            interpret(packet, state->turn);
         });
 
         client_->connect(host, PoolConstants::port);

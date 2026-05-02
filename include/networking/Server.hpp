@@ -39,7 +39,7 @@ public:
     }
 
     void send(const sf::Packet& packet) {
-        std::cout << "got a packet to queue" << std::endl;
+        // std::cout << "got a packet to queue" << std::endl;
         auto outgoing = _outgoing.lock();
         outgoing->push(packet);
     }
@@ -70,7 +70,7 @@ private:
 
             auto outgoing = _outgoing.lock();
             while (!outgoing->empty()) { // send queued packets to all clients
-                std::cout << "got a packet to send" << std::endl;
+                // std::cout << "got a packet to send" << std::endl;
                 auto packet = outgoing->front();
                 for (auto& connection : *connections) while (connection->send(packet) == sf::Socket::Status::Partial); //resend the same packet if the whole thing didn't reach the serber
                 outgoing->pop();

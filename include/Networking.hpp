@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Ball.hpp"
+#include "Utilities.hpp"
 #include "Vector.hpp"
 
 template <typename T>
@@ -40,7 +41,8 @@ private:
 enum class PacketType : uint8_t {
     Balls,
     Connection,
-    Cue
+    Cue,
+    PlayerTurn
 };
 
 inline sf::Packet& operator<<(sf::Packet& packet, const PacketType& type) {
@@ -119,4 +121,16 @@ inline void interpret(sf::Packet& packet, Vector& aimDir, float& power, bool& ai
     packet >> dx >> dy >> power >> aiming;
     aimDir.x = dx;
     aimDir.y = dy;
+}
+
+[[nodiscard]] inline sf::Packet package(PlayerTurn turn) {
+    auto packet = sf::Packet();
+    packet << PacketType::PlayerTurn << static_cast<uint8_t>(turn);
+    return packet;
+}
+
+inline void interpret(sf::Packet& packet, PlayerTurn& turn) {
+    uint8_t turn_int = 0;
+    packet >> turn_int;
+    turn = static_cast<PlayerTurn>(turn_int);
 }

@@ -79,10 +79,10 @@ void Display::render() {
     this->window_.draw(this->border_);
 
     auto state = state_.lock();
-        aimDir_.x = static_cast<float>(state->cueDir.x);
-        aimDir_.y = static_cast<float>(state->cueDir.y);
-        aimPower_ = state->cuePower;
-        aiming_ = state->cueAiming;
+    aimDir_.x = static_cast<float>(state->cueDir.x);
+    aimDir_.y = static_cast<float>(state->cueDir.y);
+    aimPower_ = state->cuePower;
+    aiming_ = state->cueAiming;
 
 
     // for (const auto& pocket : pocketCenters()) {
@@ -104,7 +104,7 @@ void Display::render() {
     
         for (Ball& ball: state->balls) this->drawBall(ball);
         
-        if (aiming_ && cueTexture_.getSize().x > 0) {
+        if (state->turn == PlayerTurn::Aiming && aiming_ && cueTexture_.getSize().x > 0) {
             Vector cuePos;
             bool foundCue = false;
             for (const Ball& ball : state->balls) {
