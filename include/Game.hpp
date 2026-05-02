@@ -60,8 +60,6 @@ public:
 
         while(window_.isOpen()) {
             display.render();
-            physics.step();
-
             stateBasedActions();
 
             if (result.role == Role::Host) {
@@ -105,7 +103,7 @@ private:
         if (state->turn == PlayerTurn::Physics) {
             state->turn = PlayerTurn::Aiming;
             for (const Ball& ball : state->balls) {
-                if (ball.vel.magnitude() > 0) {
+                if (ball.vel.magnitude() > 0.01) {
                     state->turn = PlayerTurn::Physics;
                     break;
                 }
@@ -305,9 +303,9 @@ private:
                     if (ball.number == 0) { ball.vel = stickDir; break; }
                 }
             }
-            if (state->turn == PlayerTurn::PlacingCueBall && controller_.hitPressed()) {
-                cue_->get().pos += stickDir * 2;
-                state->turn = PlayerTurn::Aiming;
+            if (state->turn == PlayerTurn::PlacingCueBall) {
+                cue_->get().pos += stickDir;
+                if (controller_.hitPressed()) state->turn = PlayerTurn::Aiming;
             }
         }
     }
