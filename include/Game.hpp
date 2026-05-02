@@ -73,11 +73,20 @@ public:
                             break;
                         }
                     }
-                    std::cout << "physics\n";
+                    std::cout << "physics" << std::endl;
                 }
                 if (state->turn == PlayerTurn::Aiming) {
                     // TODO
-                    std::cout << "aiming\n";
+                    std::cout << "aiming" << std::endl;
+                }
+                if (state->turn == PlayerTurn::None) {
+                    std::cout << "turn none" << std::endl;
+                }
+                if (state->turn == PlayerTurn::PlacingCueBall) {
+                    std::cout << "turn placing" << std::endl;
+                }
+                if (state->turn == PlayerTurn::End) {
+                    std::cout << "turn end" << std::endl;
                 }
             }
 
