@@ -78,30 +78,11 @@ void Display::render() {
     this->window_.draw(this->top_);
     this->window_.draw(this->border_);
 
-    if (auto state = state_.lock(); state->role == Host) {
-        //controller_.update();
-        sf::Vector2f dir = controller_.direction();
-        Vector shotDir{-dir.x, -dir.y};
-        aimDir_ = dir;
-        aimPower_ = std::clamp(controller_.power(), 0.0f, 1.0f);
-        aiming_ = shotDir.magnitude() > 0.05f;
-
-        if (controller_.hitPressed()) {
-
-
-            if (shotDir.magnitude() > 0.05) {
-                float speed = 3000.0f * std::max(0.1f, aimPower_);
-
-                shotDir = shotDir.normalized() * speed;
-                for (Ball& ball : balls) {
-                    if (ball.number == 0) {
-                        ball.vel = shotDir;
-                        break;
-                    }
-                }
-            }
-        }
-    }
+    auto state = state_.lock();
+        aimDir_.x = static_cast<float>(state->cueDir.x);
+        aimDir_.y = static_cast<float>(state->cueDir.y);
+        aimPower_ = state->cuePower;
+        aiming_ = state->cueAiming;
 
 
     // for (const auto& pocket : pocketCenters()) {
@@ -120,10 +101,36 @@ void Display::render() {
     // physics
     //
     // clients draw balls
-    {
-        auto state = state_.lock();
+    
         for (Ball& ball: state->balls) this->drawBall(ball);
-    }
+        
+        if (aiming_ && cueTexture_.getSize().x > 0) {
+            Vector cuePos;
+            bool foundCue = false;
+            for (const Ball& ball : state->balls) {
+                if (ball.number == 0) {
+                    cuePos = ball.pos;
+                    foundCue = true;
+                    break;
+                }
+            }
+            if (foundCue) {
+                Vector aimVec{aimDir_.x, aimDir_.y};
+                if (aimVec.magnitude() > 0.05f) {
+                    float angle = (std::atan2(aimVec.y, aimVec.x) * 180.0f / 3.14159265f) - 90.0f;
+                    float pullback = 120.0f * aimPower_;
+                    Vector offset = aimVec.normalized() * pullback;
+                    sf::Vector2f screenPos{
+                        static_cast<float>((static_cast<float>(cuePos.x) + this->tableOffset_.x + offset.x) * this->scale_ + this->renderedOffset_.x),
+                        static_cast<float>((static_cast<float>(cuePos.y) + this->tableOffset_.y + offset.y) * this->scale_ + this->renderedOffset_.y)
+                    };
+                    cueSprite_.setPosition(screenPos);
+                    cueSprite_.setRotation(sf::degrees(angle));
+                    this->window_.draw(cueSprite_);
+                }
+            }
+        }
+    
 
     window_.display();
 }

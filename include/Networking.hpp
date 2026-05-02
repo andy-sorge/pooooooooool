@@ -106,3 +106,17 @@ inline void interpret(sf::Packet& packet, std::uint16_t& displays) { // message 
 
     packet >> displays;
 }
+
+
+[[nodiscard]] inline sf::Packet package(const Vector& aimDir, float power, bool aiming) {
+    auto packet = sf::Packet();
+    packet << PacketType::Cue << static_cast<float>(aimDir.x) << static_cast<float>(aimDir.y) << power << aiming;
+    return packet;
+}
+
+inline void interpret(sf::Packet& packet, Vector& aimDir, float& power, bool& aiming) {
+    float dx = 0.0f, dy = 0.0f;
+    packet >> dx >> dy >> power >> aiming;
+    aimDir.x = dx;
+    aimDir.y = dy;
+}

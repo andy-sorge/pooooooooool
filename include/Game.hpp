@@ -19,6 +19,7 @@
 #include "Textures.hpp"
 #include "Utilities.hpp"
 #include "Networking.hpp"
+#include "ControllerInput.hpp"
 
 
 class Game {
@@ -62,6 +63,8 @@ public:
                 if (elapsed - last >= interval) {
                     auto state = state_.lock();
                     server_->send(package(state->balls));
+                    // also send cue state
+                    server_->send(package(state->cueDir, state->cuePower, state->cueAiming));
                     last = elapsed;
                 }
             }
@@ -133,6 +136,11 @@ private:
             else std::cerr << "display not ready!";
         });
 
+        client_->registerHandle(PacketType::Cue, [this](sf::Packet& packet) {   
+            auto state = state_.lock();
+            interpret(packet, state->cueDir, state->cuePower, state->cueAiming);
+        });
+
         client_->connect(host, PoolConstants::port);
 
         auto now = std::chrono::steady_clock::now();
@@ -184,13 +192,12 @@ private:
     void input() {
         while (const std::optional event = this->window_.pollEvent()) {
             auto state = state_.lock();
-
+            controller_.update(event);
             if (event->is<sf::Event::Closed>())
                 this->window_.close();
 
-            controller_.update(event);
             if (auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
-                    if (state_.lock()->turn == PlayerTurn::PlacingCueBall);
+                    if (state->turn == PlayerTurn::PlacingCueBall);
                     // TODO: display should show a picture of the ball
                     //cue_.emplace(state->balls.emplace_back(Vector(mouse.x, mouse.y), Vector{0, 0}, 0));
             }
@@ -223,6 +230,22 @@ private:
                     sf::Vector2i mouse = sf::Mouse::getPosition();
                     Vector mouse_pos = Vector(mouse.x, mouse.y);
                     cue.vel += (cue.pos - Vector(mouse.x, mouse.y)) * 10;
+                }
+            }
+        }
+        auto state = state_.lock();
+        if (state->role == Role::Host) {
+            sf::Vector2f dir = controller_.direction();
+            Vector shotDir{-dir.x, -dir.y};
+            state->cueDir = Vector{static_cast<unit_t>(dir.x), static_cast<unit_t>(dir.y)};
+            state->cuePower = std::clamp(controller_.power(), 0.0f, 1.0f);
+            state->cueAiming = shotDir.magnitude() > 0.05f;
+
+            if (controller_.hitPressed() && shotDir.magnitude() > 0.05f) {
+                float speed = 3000.0f * std::max(0.1f, state->cuePower);
+                shotDir = shotDir.normalized() * speed;
+                for (Ball& ball : state->balls) {
+                    if (ball.number == 0) { ball.vel = shotDir; break; }
                 }
             }
         }

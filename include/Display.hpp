@@ -21,7 +21,6 @@
 
 #include "Textures.hpp"
 #include "Ball.hpp"
-#include "ControllerInput.hpp"
 
 typedef struct rect {
     int x;
@@ -74,7 +73,6 @@ private:
 
     std::vector<Ball> balls;
     std::vector<Vector> initial_ball_velocities; // for physics ✨
-    ControllerInput controller_{};
     sf::Vector2f aimDir_{0.0f, 0.0f};
     float aimPower_{0.0f};
     bool aiming_{false};
