@@ -13,7 +13,7 @@ stdenv.mkDerivation {
     owner = "andy-sorge";
     repo = "pooooooooool";
     rev = "v1.0.1";
-    sha256 = "EO5MEvGGxwD5lU8JHADwOI1nxYlAi9OuWcfy0x20YbA=";
+    sha256 = "uxn93au6xU5vK3qcumYLdCwpKjeXfz4zNd1jLV/YvBM=";
   };
 
   nativeBuildInputs = [ cmake makeWrapper ];
