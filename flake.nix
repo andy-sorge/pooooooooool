@@ -1,6 +1,6 @@
 {
   description = "Pooooooooool flake";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
   outputs = { self, nixpkgs }: let
     systems = [ "x86_64-linux" "aarch64-darwin" ];
