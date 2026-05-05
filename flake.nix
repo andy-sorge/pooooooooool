@@ -1,5 +1,5 @@
 {
-  description = "C++ dev shell";
+  description = "Pooooooooool flake";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }: let
@@ -7,6 +7,10 @@
     forAllSystems = nixpkgs.lib.genAttrs systems;
     pkgsFor = system: nixpkgs.legacyPackages.${system};
   in {
+    packages = forAllSystems(system: {
+      default = (pkgsFor system).callPackage ./package.nix { };
+    });
+
     devShells = forAllSystems(system:
       let pkgs = pkgsFor system; in {
         default = pkgs.mkShell {
@@ -19,6 +23,5 @@
           ];
         };
     });
-
   };
 }
