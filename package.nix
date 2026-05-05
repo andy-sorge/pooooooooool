@@ -12,7 +12,7 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "andy-sorge";
     repo = "pooooooooool";
-    rev = "v1.0.0";
+    rev = "v1.0.1";
     sha256 = "EO5MEvGGxwD5lU8JHADwOI1nxYlAi9OuWcfy0x20YbA=";
   };
 
